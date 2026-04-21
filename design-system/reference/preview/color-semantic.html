@@ -1,0 +1,39 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:var(--surface-app);}
+  .wrap{padding:22px 28px;font-family:var(--font-ui);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .box{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;}
+  .box .dot{width:18px;height:18px;border-radius:6px;flex:none;box-shadow:inset 0 0 0 0.5px rgba(0,0,0,0.06);}
+  .box .lbl{font-size:13px;font-weight:500;color:var(--fg-1);}
+  .box .hx{font-size:10.5px;color:var(--fg-3);font-family:var(--font-mono);margin-top:1px;}
+  .success{background:#E2EDE4;}
+  .warning{background:#F7ECD3;}
+  .danger{background:#F7DFD5;}
+</style></head>
+<body><div class="wrap">
+  <div class="box success">
+    <div class="dot" style="background:#5E8A6B"></div>
+    <div><div class="lbl" style="color:#355A40">Success · sage</div><div class="hx">fg #5E8A6B · bg #E2EDE4</div></div>
+  </div>
+  <div class="box warning">
+    <div class="dot" style="background:#C8881E"></div>
+    <div><div class="lbl" style="color:#8A5A0F">Warning · amber</div><div class="hx">fg #C8881E · bg #F7ECD3</div></div>
+  </div>
+  <div class="box danger">
+    <div class="dot" style="background:#C85A3D"></div>
+    <div><div class="lbl" style="color:#7A3320">Danger · persimmon</div><div class="hx">fg #C85A3D · bg #F7DFD5</div></div>
+  </div>
+  <div class="box" style="background:#EEF0FE">
+    <div class="dot" style="background:#4B5BE8"></div>
+    <div><div class="lbl" style="color:#2E38A0">Accent · indigo</div><div class="hx">fg #4B5BE8 · bg #EEF0FE</div></div>
+  </div>
+  <div class="box" style="background:#F5F3EE">
+    <div class="dot" style="background:#5E5B50"></div>
+    <div><div class="lbl">Neutral</div><div class="hx">fg-2 · surface-2</div></div>
+  </div>
+  <div class="box" style="background:#24221C">
+    <div class="dot" style="background:#FDFCF9"></div>
+    <div><div class="lbl" style="color:#FDFCF9">Inverse</div><div class="hx" style="color:#A8A496">on ink</div></div>
+  </div>
+</div></body></html>

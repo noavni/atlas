@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:var(--surface-app);}
+  .wrap{padding:24px 28px;font-family:var(--font-ui);display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+  button{font-family:var(--font-ui);font-size:14px;font-weight:500;border:none;cursor:pointer;padding:9px 16px;border-radius:8px;transition:all 120ms ease;}
+  .primary{background:#4B5BE8;color:#fff;}
+  .primary:hover{background:#3B48C9;}
+  .secondary{background:#F5F3EE;color:#24221C;}
+  .secondary:hover{background:#EEECE5;}
+  .ghost{background:transparent;color:#5E5B50;}
+  .ghost:hover{background:#F5F3EE;color:#24221C;}
+  .danger{background:#C85A3D;color:#fff;}
+  .danger:hover{background:#A84A31;}
+  .sm{padding:6px 12px;font-size:12.5px;border-radius:6px;}
+  .icon{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:#5E5B50;border-radius:8px;}
+  .icon:hover{background:#F5F3EE;color:#24221C;}
+</style></head>
+<body><div class="wrap">
+  <button class="primary">New note</button>
+  <button class="secondary">Cancel</button>
+  <button class="ghost">Dismiss</button>
+  <button class="danger">Delete</button>
+  <button class="primary sm">Save</button>
+  <button class="secondary sm">Filter</button>
+  <button class="icon" title="More">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+  </button>
+</div></body></html>

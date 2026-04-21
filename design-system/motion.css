@@ -1,0 +1,129 @@
+/* ============================================================================
+   Atlas — Motion Tokens
+   ----------------------------------------------------------------------------
+   Springs, durations, and easing curves. Motion is the product.
+   Respect prefers-reduced-motion — degrades to short opacity fades.
+   ============================================================================ */
+
+:root {
+  /* ---------- Durations ---------- */
+  --dur-instant:  80ms;
+  --dur-fast:     120ms;
+  --dur-quick:    200ms;
+  --dur-base:     250ms;
+  --dur-slow:     380ms;
+  --dur-emph:     500ms;
+  --dur-enter:    320ms;
+  --dur-exit:     180ms;
+
+  /* ---------- Easing ----------
+     Spring-like beziers, approximating iOS curves.
+     Use these on transform/opacity for UI that can't use a real spring. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);          /* gentle deceleration */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);           /* snappy deceleration */
+  --ease-out-back:  cubic-bezier(0.34, 1.56, 0.64, 1);       /* playful overshoot */
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);            /* standard */
+  --ease-in-quint:  cubic-bezier(0.64, 0, 0.78, 0);          /* exiting */
+  --ease-linear:    linear;
+
+  /* Semantic spring curves — used as transition-timing-function */
+  --spring-gentle: cubic-bezier(0.32, 0.72, 0, 1);
+  --spring-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ---------- Transition shorthands ---------- */
+  --t-hover:     background-color var(--dur-fast) var(--ease-in-out),
+                 color var(--dur-fast) var(--ease-in-out),
+                 border-color var(--dur-fast) var(--ease-in-out);
+  --t-press:     transform var(--dur-instant) var(--spring-snappy);
+  --t-panel:     transform var(--dur-base) var(--spring-gentle),
+                 opacity var(--dur-base) var(--ease-out-quint);
+  --t-enter:     transform var(--dur-enter) var(--spring-gentle),
+                 opacity var(--dur-enter) var(--ease-out-quint);
+  --t-exit:      transform var(--dur-exit) var(--ease-in-quint),
+                 opacity var(--dur-exit) var(--ease-in-quint);
+
+  /* ---------- Real-spring parameters ----------
+     For JS libraries (framer-motion, react-spring, popmotion). */
+  --spring-drag-stiffness: 220;
+  --spring-drag-damping:   26;
+  --spring-drag-mass:      1;
+
+  --spring-panel-stiffness: 260;
+  --spring-panel-damping:   30;
+
+  --spring-bounce-stiffness: 400;
+  --spring-bounce-damping:   15;
+}
+
+/* ============================================================================
+   BASE INTERACTION PATTERNS
+   ============================================================================ */
+
+/* Every interactive surface gets this */
+.motion-base {
+  transition: var(--t-hover);
+}
+
+/* Pressable (buttons, cards) — shrinks to 96% under press */
+.motion-press {
+  transition: var(--t-press), var(--t-hover);
+  will-change: transform;
+}
+.motion-press:active {
+  transform: scale(0.96);
+}
+
+/* Hover lift — cards that rise on hover */
+.motion-lift {
+  transition: transform var(--dur-quick) var(--spring-gentle),
+              box-shadow var(--dur-quick) var(--ease-out-quint);
+}
+.motion-lift:hover {
+  transform: translateY(-1.5px);
+}
+
+/* Enter animation — panels, popovers, cards appearing */
+@keyframes motion-enter-up {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+@keyframes motion-enter-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes motion-enter-scale {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes motion-sheet-up {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes motion-shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+.motion-enter-up    { animation: motion-enter-up    var(--dur-enter) var(--spring-gentle) both; }
+.motion-enter-fade  { animation: motion-enter-fade  var(--dur-base)  var(--ease-out-quint) both; }
+.motion-enter-scale { animation: motion-enter-scale var(--dur-enter) var(--spring-gentle) both; }
+.motion-sheet-up    { animation: motion-sheet-up    var(--dur-slow)  var(--spring-gentle) both; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast:    0ms;
+    --dur-quick:   80ms;
+    --dur-base:    80ms;
+    --dur-slow:    80ms;
+    --dur-emph:    80ms;
+    --dur-enter:   80ms;
+    --dur-exit:    60ms;
+  }
+  .motion-lift:hover,
+  .motion-press:active {
+    transform: none !important;
+  }
+}

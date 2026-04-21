@@ -1,0 +1,117 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:var(--surface-app);color:var(--fg-1);}
+  .card{padding:26px 28px;font-family:var(--font-ui);}
+  .logos{display:flex;align-items:center;gap:40px;flex-wrap:wrap;}
+  .mark{display:flex;align-items:center;gap:14px;}
+  .wordmark{font-family:var(--font-display);font-size:34px;font-weight:600;letter-spacing:-0.028em;color:var(--fg-1);}
+  .dark-swatch{background:#0E1012;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 2px rgba(0,0,0,0.1);}
+  .dark-swatch span{color:#E4E6EB;font-family:var(--font-display);font-size:26px;font-weight:600;letter-spacing:-0.028em;}
+  .meta{color:var(--fg-3);font-size:11.5px;margin-top:20px;font-family:var(--font-mono);}
+
+  /* Sphere logomark — animated, self-contained SVG with gradient + highlight */
+  .sphere { position: relative; display: inline-block; }
+  .sphere svg { display: block; overflow: visible; }
+  .halo {
+    position: absolute; inset: -14%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, rgba(107,120,239,0.35), transparent 62%);
+    filter: blur(8px);
+    animation: halo-pulse 4.2s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+    pointer-events: none;
+  }
+  @keyframes halo-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50%      { opacity: 0.95; transform: scale(1.08); }
+  }
+
+  .sphere .orb        { animation: orb-float 6s cubic-bezier(0.32, 0.72, 0, 1) infinite; transform-origin: 50% 50%; }
+  .sphere .glow       { animation: glow-shift 7s ease-in-out infinite; }
+  .sphere .arc        { animation: arc-rotate 14s linear infinite; transform-origin: 32px 32px; opacity: 0.6; }
+  .sphere .arc-b      { animation: arc-rotate 20s linear infinite reverse; transform-origin: 32px 32px; opacity: 0.4; }
+  .sphere .hi         { animation: hi-drift 6s ease-in-out infinite; }
+
+  @keyframes orb-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-1.5px) scale(1.015); }
+  }
+  @keyframes glow-shift {
+    0%, 100% { opacity: 0.8; }
+    50%      { opacity: 1; }
+  }
+  @keyframes arc-rotate { to { transform: rotate(360deg); } }
+  @keyframes hi-drift {
+    0%, 100% { transform: translate(0, 0); opacity: 0.9; }
+    50%      { transform: translate(1px, -1px); opacity: 1; }
+  }
+</style></head>
+<body><div class="card">
+  <div class="logos">
+    <div class="mark">
+      <div class="sphere">
+        <div class="halo"></div>
+        <svg width="56" height="56" viewBox="0 0 64 64">
+          <defs>
+            <radialGradient id="sph" cx="38%" cy="30%" r="72%">
+              <stop offset="0%" stop-color="#D7DCFF"/>
+              <stop offset="32%" stop-color="#8E9AF5"/>
+              <stop offset="68%" stop-color="#4B5BE8"/>
+              <stop offset="100%" stop-color="#1F2672"/>
+            </radialGradient>
+            <radialGradient id="hi" cx="38%" cy="28%" r="26%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.95)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <radialGradient id="rim" cx="50%" cy="50%" r="50%">
+              <stop offset="78%" stop-color="rgba(255,255,255,0)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0.25)"/>
+            </radialGradient>
+          </defs>
+          <g class="orb">
+            <circle class="glow" cx="32" cy="32" r="26" fill="url(#sph)"/>
+            <ellipse class="arc" cx="32" cy="32" rx="26" ry="9" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.6"/>
+            <ellipse class="arc-b" cx="32" cy="32" rx="26" ry="15" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.5"/>
+            <circle cx="32" cy="32" r="26" fill="url(#rim)"/>
+            <ellipse class="hi" cx="24" cy="22" rx="8" ry="5" fill="url(#hi)"/>
+          </g>
+        </svg>
+      </div>
+      <span class="wordmark">Atlas</span>
+    </div>
+
+    <div class="dark-swatch">
+      <div class="sphere">
+        <div class="halo" style="background:radial-gradient(circle at 38% 32%, rgba(143,157,255,0.55), transparent 62%);"></div>
+        <svg width="40" height="40" viewBox="0 0 64 64">
+          <g class="orb">
+            <circle class="glow" cx="32" cy="32" r="26" fill="url(#sph)"/>
+            <ellipse class="arc" cx="32" cy="32" rx="26" ry="9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.6"/>
+            <ellipse class="arc-b" cx="32" cy="32" rx="26" ry="15" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.5"/>
+            <circle cx="32" cy="32" r="26" fill="url(#rim)"/>
+            <ellipse class="hi" cx="24" cy="22" rx="8" ry="5" fill="url(#hi)"/>
+          </g>
+        </svg>
+      </div>
+      <span>Atlas</span>
+    </div>
+
+    <div class="sphere">
+      <svg width="28" height="28" viewBox="0 0 64 64">
+        <g class="orb">
+          <circle cx="32" cy="32" r="26" fill="url(#sph)"/>
+          <ellipse class="arc" cx="32" cy="32" rx="26" ry="9" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+          <ellipse class="hi" cx="24" cy="22" rx="8" ry="5" fill="url(#hi)"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="sphere">
+      <svg width="18" height="18" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="26" fill="url(#sph)"/>
+        <ellipse cx="24" cy="22" rx="8" ry="5" fill="url(#hi)"/>
+      </svg>
+    </div>
+  </div>
+  <div class="meta">sphere logomark · gradient + slow orbital arcs + drifting specular · wordmark: Inter Display Semibold, −2.8% tracking</div>
+</div></body></html>

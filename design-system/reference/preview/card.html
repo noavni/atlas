@@ -1,0 +1,38 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:var(--surface-2);}
+  .wrap{padding:24px;font-family:var(--font-ui);display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .card{background:var(--surface-raised);border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(24,22,36,0.04),0 1px 1px rgba(24,22,36,0.03);transition:all 200ms cubic-bezier(0.32,0.72,0,1);}
+  .card.h{transform:translateY(-1.5px);box-shadow:0 2px 4px rgba(24,22,36,0.05),0 6px 16px rgba(24,22,36,0.06);}
+  .tag-row{display:flex;gap:6px;margin-bottom:8px;}
+  .b{font-size:11px;padding:2px 8px;border-radius:9999px;font-weight:500;}
+  .doing{background:#EEF0FE;color:#2E38A0;}
+  .done{background:#E2EDE4;color:#355A40;}
+  .ttl{font-size:14px;font-weight:600;color:var(--fg-1);line-height:1.3;margin-bottom:6px;}
+  .desc{font-size:12.5px;color:var(--fg-2);line-height:1.4;}
+  .meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:11px;color:var(--fg-3);}
+  .av{display:flex;}
+  .av div{width:18px;height:18px;border-radius:50%;background:#8E9AF5;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-left:-4px;border:1.5px solid var(--surface-raised);}
+  .av div:first-child{margin-left:0;background:#C85A3D;}
+</style></head>
+<body><div class="wrap">
+  <div class="card">
+    <div class="tag-row"><span class="b doing">· In progress</span></div>
+    <div class="ttl">Choose paint color for kitchen</div>
+    <div class="desc">Warm neutrals. Test swatches on north wall first.</div>
+    <div class="meta">
+      <span>Today</span>
+      <div class="av"><div>S</div><div>Y</div></div>
+    </div>
+  </div>
+  <div class="card h">
+    <div class="tag-row"><span class="b done">· Done</span></div>
+    <div class="ttl">Finalize vacation dates</div>
+    <div class="desc">July 12–26. Flights booked.</div>
+    <div class="meta">
+      <span>2 backlinks</span>
+      <div class="av"><div>S</div></div>
+    </div>
+  </div>
+</div></body></html>

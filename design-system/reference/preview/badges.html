@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:var(--surface-app);}
+  .wrap{padding:24px 28px;font-family:var(--font-ui);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .b{font-size:12px;padding:3px 10px;border-radius:9999px;font-weight:500;display:inline-flex;align-items:center;gap:6px;}
+  .b .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .todo{background:#F5F3EE;color:#5E5B50;}
+  .doing{background:#EEF0FE;color:#2E38A0;}
+  .review{background:#F7ECD3;color:#8A5A0F;}
+  .done{background:#E2EDE4;color:#355A40;}
+  .blocked{background:#F7DFD5;color:#7A3320;}
+  .archived{background:#EEECE5;color:#A8A496;}
+  .tag{background:var(--surface-2);color:var(--fg-2);border-radius:4px;padding:2px 7px;font-size:11.5px;font-weight:500;}
+</style></head>
+<body><div class="wrap">
+  <span class="b todo"><span class="dot"></span>To do</span>
+  <span class="b doing"><span class="dot"></span>In progress</span>
+  <span class="b review"><span class="dot"></span>Review</span>
+  <span class="b done"><span class="dot"></span>Done</span>
+  <span class="b blocked"><span class="dot"></span>Blocked</span>
+  <span class="b archived"><span class="dot"></span>Archived</span>
+  <span class="tag">#home</span>
+  <span class="tag">#idea</span>
+  <span class="tag" style="color:#4B5BE8;background:#EEF0FE;">@shira</span>
+</div></body></html>

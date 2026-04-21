@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="atlas-sphere" cx="38%" cy="32%" r="72%">
+      <stop offset="0%" stop-color="#B9C1FB"></stop>
+      <stop offset="45%" stop-color="#6B78EF"></stop>
+      <stop offset="82%" stop-color="#3B48C9"></stop>
+      <stop offset="100%" stop-color="#1F2672"></stop>
+    </radialGradient>
+    <radialGradient id="atlas-glow" cx="38%" cy="32%" r="30%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.7)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"></stop>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="26" fill="url(#atlas-sphere)"></circle>
+  <circle cx="32" cy="32" r="26" fill="url(#atlas-glow)"></circle>
+  <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"></circle>
+</svg>

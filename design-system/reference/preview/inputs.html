@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;background:var(--surface-app);}
+  .wrap{padding:24px 28px;font-family:var(--font-ui);display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .f{display:flex;flex-direction:column;gap:4px;}
+  .lbl{font-size:11px;color:var(--fg-2);font-weight:500;}
+  input,textarea{font-family:var(--font-ui);font-size:13.5px;color:var(--fg-1);background:var(--surface-raised);border:1px solid var(--border-input);border-radius:8px;padding:9px 12px;outline:none;transition:all 120ms ease;}
+  input:focus{border-color:#4B5BE8;box-shadow:0 0 0 3px rgba(75,91,232,0.16);}
+  .with-icon{position:relative;}
+  .with-icon svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--fg-3);}
+  .with-icon input{padding-left:34px;}
+  .select{display:flex;align-items:center;justify-content:space-between;background:var(--surface-raised);border:1px solid var(--border-input);border-radius:8px;padding:9px 12px;color:var(--fg-1);font-size:13.5px;}
+  .select svg{color:var(--fg-3);}
+</style></head>
+<body><div class="wrap">
+  <div class="f"><div class="lbl">Note title</div><input placeholder="Untitled" value="Weekend plans"></div>
+  <div class="f"><div class="lbl">Search</div>
+    <div class="with-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input placeholder="Search everything">
+    </div>
+  </div>
+  <div class="f"><div class="lbl">Project</div>
+    <div class="select"><span>Home renovation</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+  </div>
+  <div class="f"><div class="lbl">Disabled</div><input value="Read-only" disabled style="opacity:.4"></div>
+</div></body></html>
