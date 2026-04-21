@@ -145,6 +145,36 @@ body {
 }
 
 /* ============================================================================
+   Atlas scrollbar — thin, subtle, only visible on hover
+   ============================================================================ */
+.atlas-board-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--dur-quick) var(--ease-in-out);
+}
+.atlas-board-scroll:hover {
+  scrollbar-color: var(--border-strong) transparent;
+}
+.atlas-board-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.atlas-board-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.atlas-board-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  transition: background var(--dur-quick) var(--ease-in-out);
+}
+.atlas-board-scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+}
+.atlas-board-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-4);
+}
+
+/* ============================================================================
    QuickCapture waveform bars
    ============================================================================ */
 .qc-wave-bar {

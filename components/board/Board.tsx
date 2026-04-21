@@ -89,7 +89,7 @@ export function Board({ projectId }: BoardProps) {
   }
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
+    <div className="atlas-board-scroll flex h-full min-h-0 gap-4 overflow-x-auto overflow-y-hidden pb-4">
       <LayoutGroup>
         <AnimatePresence initial={false}>
           {(columns.data ?? []).map((col) => (
@@ -117,11 +117,11 @@ export function Board({ projectId }: BoardProps) {
 
 function BoardSkeleton() {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
+    <div className="flex h-full gap-4 overflow-x-auto overflow-y-hidden pb-4">
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="h-64 w-[300px] shrink-0 animate-pulse rounded-md bg-surface-2"
+          className="h-[440px] w-[300px] shrink-0 animate-pulse rounded-md bg-surface-2"
         />
       ))}
     </div>

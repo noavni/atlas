@@ -42,7 +42,7 @@ export function Column({
       layout
       onPointerEnter={onPointerEnter}
       className={cn(
-        "flex w-[300px] shrink-0 flex-col gap-2 rounded-md p-2.5",
+        "flex h-full w-[300px] shrink-0 flex-col rounded-md p-2.5",
         "bg-surface-2 transition-[background-color,box-shadow] duration-200",
         isDropTarget && "bg-accent-tint shadow-[inset_0_0_0_2px_var(--accent-primary)]",
       )}
@@ -52,7 +52,11 @@ export function Column({
         <span className="text-fg-1">{column.name}</span>
         <span className="ms-auto text-[12px] font-medium text-fg-3">{cards.length}</span>
       </div>
-      <motion.div layout transition={SPRING.gentle} className="flex flex-col gap-2">
+      <motion.div
+        layout
+        transition={SPRING.gentle}
+        className="atlas-board-scroll flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto"
+      >
         {cards.map((card) => (
           <Card
             key={card.id}
@@ -66,7 +70,7 @@ export function Column({
         type="button"
         onClick={() => onAddCard?.(column.id)}
         className={cn(
-          "flex items-center gap-1.5 rounded-sm bg-transparent px-3 py-2 text-start",
+          "mt-2 flex items-center gap-1.5 rounded-sm bg-transparent px-3 py-2 text-start",
           "font-ui text-[12.5px] font-medium text-fg-3",
           "transition-[background-color,color] duration-150 hover:bg-surface-hover hover:text-fg-1",
         )}
