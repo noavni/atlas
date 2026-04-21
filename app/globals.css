@@ -7,28 +7,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Swap --font-display to Instrument Serif (loaded by next/font in layout.tsx).
- * The token system references `var(--font-display)` everywhere; this redefine
- * keeps the design tokens pure and lets Atlas sit on Instrument Serif without
- * editing the vendored token file.
- *
- * Instrument Serif ONLY ships at weight 400 (regular + italic). Setting
- * font-weight: 600 forces the browser to synthesize a bold that looks
- * clumsy vs the handoff. Atlas achieves display "presence" via size +
- * negative tracking, not faux-bold strokes. */
+/* Font token resolution. next/font exposes CSS variables
+ * (--font-inter, --font-heebo, etc.) that we splice into the design-system
+ * font chains so Hebrew text resolves to Heebo/Frank Ruhl Libre instead of
+ * falling through to Times New Roman on LTR documents. */
 :root {
-  --font-display: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
-}
-
-/* Any element using the display family uses native weight 400. */
-.font-display {
-  font-weight: 400 !important;
-}
-h1.font-display,
-h2.font-display,
-h3.font-display,
-.h-display {
-  font-weight: 400;
+  --font-display: var(--font-inter), var(--font-heebo), "Inter", "Heebo",
+    -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  --font-ui: var(--font-inter), var(--font-heebo), "Inter", "Heebo",
+    -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), var(--font-frank-ruhl-libre),
+    "Source Serif 4", "Frank Ruhl Libre", ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace,
+    "SF Mono", Menlo, Consolas, monospace;
+  --font-hebrew-ui: var(--font-heebo), "Heebo", var(--font-inter), "Inter",
+    system-ui, sans-serif;
+  --font-hebrew-serif: var(--font-frank-ruhl-libre), "Frank Ruhl Libre",
+    var(--font-source-serif), "Source Serif 4", serif;
 }
 
 html,

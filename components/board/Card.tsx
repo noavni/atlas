@@ -1,7 +1,11 @@
 "use client";
 
 import { Link as LinkIcon } from "lucide-react";
-import { motion, type HTMLMotionProps } from "framer-motion";
+import {
+  motion,
+  type HTMLMotionProps,
+  type PanInfo,
+} from "framer-motion";
 import { forwardRef } from "react";
 import { Avatar } from "@/components/primitives/Avatar";
 import { Icon } from "@/components/primitives/Icon";
@@ -9,11 +13,15 @@ import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Card as CardType, WorkflowState } from "@/lib/types";
 
-export interface CardProps extends Omit<HTMLMotionProps<"div">, "drag"> {
+export interface CardProps
+  extends Omit<HTMLMotionProps<"div">, "drag" | "onDragStart" | "onDragEnd" | "onDrag"> {
   card: CardType;
   linkCount?: number;
   assignees?: { name: string }[];
   draggable?: boolean;
+  onCardDragStart?: () => void;
+  onCardDrag?: (info: PanInfo) => void;
+  onCardDragEnd?: (info: PanInfo) => void;
 }
 
 type TagTone = "indigo" | "apricot" | "sage" | "amber" | "persimmon" | "neutral";
@@ -68,7 +76,17 @@ function dueLabel(iso: string | null): string | null {
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
-  { card, draggable = true, linkCount = 0, assignees = [], className, ...props },
+  {
+    card,
+    draggable = true,
+    linkCount = 0,
+    assignees = [],
+    className,
+    onCardDragStart,
+    onCardDrag,
+    onCardDragEnd,
+    ...props
+  },
   ref,
 ) {
   const tagTone = stateTone(card.workflow_state);
@@ -77,12 +95,23 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
       ref={ref}
       layout
       layoutId={card.id}
-      drag={draggable ? true : false}
+      drag={draggable}
       dragMomentum={false}
-      dragElastic={0.18}
-      whileDrag={{ scale: 1.04, rotate: 1.5, zIndex: 10, boxShadow: "var(--shadow-3)" }}
+      dragElastic={0.15}
+      dragSnapToOrigin
+      onDragStart={() => onCardDragStart?.()}
+      onDrag={(_, info) => onCardDrag?.(info)}
+      onDragEnd={(_, info) => onCardDragEnd?.(info)}
+      whileDrag={{
+        scale: 1.04,
+        rotate: 1.5,
+        zIndex: 50,
+        boxShadow: "var(--shadow-3)",
+        cursor: "grabbing",
+      }}
       whileHover={{ y: -1 }}
       transition={SPRING.gentle}
+      data-card-id={card.id}
       className={cn(
         "group relative select-none overflow-hidden rounded-md bg-surface-raised px-3.5 pt-[11px] pb-2.5 shadow-1",
         draggable ? "cursor-grab active:cursor-grabbing" : "",

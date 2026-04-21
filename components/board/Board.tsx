@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, LayoutGroup } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { AnimatePresence, LayoutGroup, type PanInfo } from "framer-motion";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Column } from "./Column";
 import {
   useBoards,
@@ -33,6 +33,7 @@ export function Board({ projectId }: BoardProps) {
   const moveCard = useMoveCard();
 
   const [hoverColumn, setHoverColumn] = useState<string | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
 
   useBoardRealtime(firstBoardId);
 
@@ -44,7 +45,6 @@ export function Board({ projectId }: BoardProps) {
       list.push(c);
       out.set(c.column_id, list);
     });
-    // Stable lexorank sort
     for (const [k, v] of out) {
       out.set(
         k,
@@ -54,24 +54,52 @@ export function Board({ projectId }: BoardProps) {
     return out;
   }, [columns.data, cards.data]);
 
-  const onDragEnd = useCallback(
-    (cardId: string) => {
-      if (!firstBoardId || !hoverColumn) return;
-      const dest = byColumn.get(hoverColumn) ?? [];
-      const tail = dest.at(-1);
+  const columnAtPoint = useCallback((x: number, y: number): string | null => {
+    const root = boardRef.current;
+    if (!root) return null;
+    const cols = root.querySelectorAll<HTMLElement>("[data-column-id]");
+    for (const el of cols) {
+      const r = el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+        return el.getAttribute("data-column-id");
+      }
+    }
+    return null;
+  }, []);
+
+  const onCardDrag = useCallback(
+    (_cardId: string, info: PanInfo) => {
+      const hit = columnAtPoint(info.point.x, info.point.y);
+      setHoverColumn((prev) => (prev === hit ? prev : hit));
+    },
+    [columnAtPoint],
+  );
+
+  const onCardDragStart = useCallback((_cardId: string) => {
+    setHoverColumn(null);
+  }, []);
+
+  const onCardDragEnd = useCallback(
+    (cardId: string, info: PanInfo) => {
+      setHoverColumn(null);
+      if (!firstBoardId) return;
+      const target = columnAtPoint(info.point.x, info.point.y);
+      if (!target) return;
       const card = (cards.data ?? []).find((c) => c.id === cardId);
       if (!card) return;
+      if (card.column_id === target) return;
+      const dest = byColumn.get(target) ?? [];
+      const tail = dest.at(-1);
       moveCard.mutate({
         boardId: firstBoardId,
         cardId,
-        columnId: hoverColumn,
+        columnId: target,
         before: tail?.rank ?? null,
         after: null,
         version: card.version,
       });
-      setHoverColumn(null);
     },
-    [firstBoardId, hoverColumn, byColumn, cards.data, moveCard],
+    [firstBoardId, byColumn, cards.data, moveCard, columnAtPoint],
   );
 
   if (boards.isLoading || columns.isLoading || cards.isLoading) {
@@ -89,7 +117,10 @@ export function Board({ projectId }: BoardProps) {
   }
 
   return (
-    <div className="atlas-board-scroll flex h-full min-h-0 gap-4 overflow-x-auto overflow-y-hidden pb-4">
+    <div
+      ref={boardRef}
+      className="atlas-board-scroll flex h-full min-h-0 gap-4 overflow-x-auto overflow-y-hidden pb-4"
+    >
       <LayoutGroup>
         <AnimatePresence initial={false}>
           {(columns.data ?? []).map((col) => (
@@ -98,7 +129,6 @@ export function Board({ projectId }: BoardProps) {
               column={col}
               cards={byColumn.get(col.id) ?? []}
               isDropTarget={hoverColumn === col.id}
-              onPointerEnter={() => setHoverColumn(col.id)}
               onAddCard={(columnId) =>
                 createCard.mutate({
                   boardId: firstBoardId,
@@ -106,7 +136,9 @@ export function Board({ projectId }: BoardProps) {
                   title: "New card",
                 })
               }
-              onDragEnd={onDragEnd}
+              onCardDragStart={onCardDragStart}
+              onCardDrag={onCardDrag}
+              onCardDragEnd={onCardDragEnd}
             />
           ))}
         </AnimatePresence>

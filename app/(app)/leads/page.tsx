@@ -74,7 +74,7 @@ export default function LeadsHubPage() {
           <div className="mb-1.5 text-[11.5px] font-medium lowercase text-fg-3">
             relationships · pipeline
           </div>
-          <h1 className="m-0 font-display text-[38px] font-normal leading-[1.05] tracking-[-0.02em] text-fg-1">
+          <h1 className="m-0 font-display text-[38px] font-semibold leading-[1.05] tracking-[-0.022em] text-fg-1">
             Leads
           </h1>
 

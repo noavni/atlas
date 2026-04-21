@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, type PanInfo } from "framer-motion";
 import { Card } from "./Card";
 import { Icon } from "@/components/primitives/Icon";
 import { SPRING } from "@/lib/motion";
@@ -22,9 +22,9 @@ export interface ColumnProps {
   cards: CardType[];
   isDropTarget?: boolean;
   onAddCard?: (columnId: string) => void;
-  onDragStart?: (cardId: string) => void;
-  onDragEnd?: (cardId: string) => void;
-  onPointerEnter?: () => void;
+  onCardDragStart?: (cardId: string) => void;
+  onCardDrag?: (cardId: string, info: PanInfo) => void;
+  onCardDragEnd?: (cardId: string, info: PanInfo) => void;
 }
 
 export function Column({
@@ -32,15 +32,15 @@ export function Column({
   cards,
   isDropTarget,
   onAddCard,
-  onDragStart,
-  onDragEnd,
-  onPointerEnter,
+  onCardDragStart,
+  onCardDrag,
+  onCardDragEnd,
 }: ColumnProps) {
   const dotKey = column.default_workflow_state ?? "todo";
   return (
     <motion.div
       layout
-      onPointerEnter={onPointerEnter}
+      data-column-id={column.id}
       className={cn(
         "flex h-full w-[300px] shrink-0 flex-col rounded-md p-2.5",
         "bg-surface-2 transition-[background-color,box-shadow] duration-200",
@@ -61,8 +61,9 @@ export function Column({
           <Card
             key={card.id}
             card={card}
-            onDragStart={() => onDragStart?.(card.id)}
-            onDragEnd={() => onDragEnd?.(card.id)}
+            onCardDragStart={() => onCardDragStart?.(card.id)}
+            onCardDrag={(info) => onCardDrag?.(card.id, info)}
+            onCardDragEnd={(info) => onCardDragEnd?.(card.id, info)}
           />
         ))}
       </motion.div>

@@ -32,6 +32,7 @@
     "next": "16.2.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-force-graph-2d": "^1.29.1",
     "tailwind-merge": "^2.5.5",
     "uuid": "^11.0.3",
     "zod": "^3.24.1",

@@ -97,7 +97,7 @@ export function NewLeadModal() {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[95] flex items-start justify-center px-4 pt-[10vh]"
+          className="fixed inset-0 z-[95] flex items-center justify-center overflow-y-auto px-4 py-[4vh]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -112,10 +112,10 @@ export function NewLeadModal() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.98 }}
             transition={SPRING.panel}
-            className="relative z-10 w-full max-w-[560px] overflow-hidden rounded-2xl border border-border-subtle bg-surface-app shadow-4"
+            className="relative z-10 flex max-h-[92vh] w-full max-w-[560px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-app shadow-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2.5 border-b border-border-subtle px-5 py-3.5">
+            <div className="flex flex-none items-center gap-2.5 border-b border-border-subtle px-5 py-3.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-accent text-fg-on-accent">
                 <Icon icon={Sparkles} size={14} />
               </span>
@@ -130,7 +130,7 @@ export function NewLeadModal() {
               </IconButton>
             </div>
 
-            <div className="space-y-3.5 px-5 py-4">
+            <div className="atlas-board-scroll flex-1 space-y-3.5 overflow-y-auto px-5 py-4">
               <div className="rounded-xl border border-dashed border-[color-mix(in_oklch,var(--accent-primary)_40%,transparent)] bg-[color-mix(in_oklch,var(--accent-primary)_6%,var(--surface-raised))] p-3.5">
                 <div className="mb-1.5 flex items-center gap-2 text-[12.5px] font-semibold text-accent">
                   <Icon icon={Sparkles} size={13} />
@@ -206,7 +206,7 @@ export function NewLeadModal() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 border-t border-border-subtle bg-surface-1/60 px-5 py-3">
+            <div className="flex flex-none items-center gap-2 border-t border-border-subtle bg-surface-1/60 px-5 py-3">
               <Button variant="ghost" onClick={() => setOpen(false)}>
                 Cancel
               </Button>

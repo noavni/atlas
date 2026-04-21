@@ -7,16 +7,18 @@ import {
 } from "framer-motion";
 import {
   ArrowRightCircle,
+  Calendar,
   ExternalLink,
   FileText,
   Linkedin,
   Mail,
-  MapPin,
   Phone,
+  Sparkles,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
+import { Button } from "@/components/primitives/Button";
 import { Icon } from "@/components/primitives/Icon";
 import { IconButton } from "@/components/primitives/IconButton";
 import { LeadAvatar } from "./LeadAvatar";
@@ -126,14 +128,44 @@ export function LeadDrawer() {
                       </div>
                       <div className="mt-2.5 flex items-center gap-1.5">
                         <StagePill stage={detail.data.lead.stage} />
+                        <span className="text-[12.5px] font-medium text-fg-2">
+                          {formatFullMoney(detail.data.lead.value_cents || 0)}
+                        </span>
                       </div>
                     </div>
                   </div>
 
+                  <div className="mb-6 grid grid-cols-3 gap-2">
+                    <Button
+                      variant="primary"
+                      className="w-full justify-center"
+                      leadingIcon={<Icon icon={Sparkles} size={13} />}
+                    >
+                      Draft
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="w-full justify-center"
+                      leadingIcon={<Icon icon={Mail} size={13} />}
+                      disabled={!detail.data.lead.email}
+                      onClick={() =>
+                        detail.data?.lead.email &&
+                        window.open(`mailto:${detail.data.lead.email}`, "_self")
+                      }
+                    >
+                      Email
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="w-full justify-center"
+                      leadingIcon={<Icon icon={Calendar} size={13} />}
+                    >
+                      Schedule
+                    </Button>
+                  </div>
+
                   <div className="mb-6 grid grid-cols-2 gap-3.5 rounded-xl border border-border-subtle bg-surface-1 p-4">
                     {[
-                      ["Value", formatFullMoney(detail.data.lead.value_cents || 0)],
-                      ["Stage", detail.data.lead.stage],
                       ["Source", detail.data.lead.source || "—"],
                       ["Location", detail.data.lead.location || "—"],
                       ["Last touch", relativeTime(detail.data.lead.last_touched_at)],
@@ -151,24 +183,21 @@ export function LeadDrawer() {
                   {(detail.data.lead.email ||
                     detail.data.lead.phone ||
                     detail.data.lead.linkedin_url) && (
-                    <div className="mb-6 flex flex-wrap gap-1.5">
+                    <div className="mb-6 flex flex-col gap-1.5">
                       {detail.data.lead.email && (
-                        <ContactChip icon={Mail} href={`mailto:${detail.data.lead.email}`}>
+                        <ContactRow icon={Mail} href={`mailto:${detail.data.lead.email}`}>
                           {detail.data.lead.email}
-                        </ContactChip>
+                        </ContactRow>
                       )}
                       {detail.data.lead.phone && (
-                        <ContactChip icon={Phone} href={`tel:${detail.data.lead.phone}`}>
+                        <ContactRow icon={Phone} href={`tel:${detail.data.lead.phone}`}>
                           {detail.data.lead.phone}
-                        </ContactChip>
-                      )}
-                      {detail.data.lead.location && (
-                        <ContactChip icon={MapPin}>{detail.data.lead.location}</ContactChip>
+                        </ContactRow>
                       )}
                       {detail.data.lead.linkedin_url && (
-                        <ContactChip icon={Linkedin} href={detail.data.lead.linkedin_url}>
-                          LinkedIn
-                        </ContactChip>
+                        <ContactRow icon={Linkedin} href={detail.data.lead.linkedin_url}>
+                          LinkedIn profile
+                        </ContactRow>
                       )}
                     </div>
                   )}
@@ -238,7 +267,7 @@ function ActRow({ a }: { a: LeadActivity }) {
   );
 }
 
-function ContactChip({
+function ContactRow({
   icon,
   children,
   href,
@@ -248,13 +277,18 @@ function ContactChip({
   href?: string;
 }) {
   const inner = (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-raised px-2.5 py-1 text-[11.5px] text-fg-2">
-      <Icon icon={icon} size={12} />
-      {children}
+    <span className="flex items-center gap-2.5 rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-[12.5px] text-fg-1 transition-colors">
+      <Icon icon={icon} size={13} className="text-fg-3" />
+      <span className="truncate">{children}</span>
     </span>
   );
   return href ? (
-    <a href={href} className="transition-opacity hover:opacity-80">
+    <a
+      href={href}
+      target={href.startsWith("http") ? "_blank" : undefined}
+      rel={href.startsWith("http") ? "noreferrer" : undefined}
+      className="block transition-colors [&>span:hover]:bg-surface-2"
+    >
       {inner}
     </a>
   ) : (
