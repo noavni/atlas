@@ -288,7 +288,7 @@ def run(dry: bool, cap: int) -> None:
                         "linkedin_url": f"https://instagram.com/{handle}",
                         "source": f"Firecrawl · {q.split('site:instagram.com')[-1].strip()[:40]}",
                         "stage": "new",
-                        "value_cents": random.choice([0, 0, 0, 180000, 240000, 320000]),
+                        "value_cents": 0,
                         "avatar_color": random.choice(COLORS),
                         "next_step": "Intro DM via Instagram",
                         "tags": tags_base + [cat_key],

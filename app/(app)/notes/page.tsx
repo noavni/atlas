@@ -18,17 +18,33 @@ export default function NotesIndexPage() {
   const createPage = useCreatePage();
   const router = useRouter();
 
+  const list = pages.data ?? [];
+
+  function nextUntitled(): string {
+    const taken = new Set(list.map((p) => p.title));
+    if (!taken.has("Untitled")) return "Untitled";
+    for (let n = 2; n < 1000; n++) if (!taken.has(`Untitled ${n}`)) return `Untitled ${n}`;
+    return `Untitled ${Date.now()}`;
+  }
+
   function onNew() {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      console.warn("No workspace yet — cannot create note.");
+      return;
+    }
     createPage.mutate(
-      { workspaceId, title: "Untitled" },
+      { workspaceId, title: nextUntitled() },
       {
         onSuccess: (p) => router.push(`/notes/${encodeURIComponent(p.title)}`),
+        onError: (err) => {
+          console.error("Create page failed", err);
+          window.alert(
+            `Could not create note: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        },
       },
     );
   }
-
-  const list = pages.data ?? [];
 
   return (
     <AppShell crumbs={["Atlas", "Notes"]} fullHeight>

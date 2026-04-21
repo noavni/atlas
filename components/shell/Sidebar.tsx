@@ -23,7 +23,9 @@ import { useInbox } from "@/lib/queries/inbox";
 import { useLeads } from "@/lib/queries/leads";
 import { useMe } from "@/lib/queries/me";
 import { usePages } from "@/lib/queries/pages";
-import { useProjects } from "@/lib/queries/projects";
+import { useCreateProject, useProjects } from "@/lib/queries/projects";
+import { useCreatePage } from "@/lib/queries/pages";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useUI } from "@/lib/store/ui";
 
@@ -167,11 +169,34 @@ export function Sidebar() {
   const leads = useLeads(workspaceId);
   const pinnedPages = pages.data?.slice(0, 5) ?? [];
   const visibleProjects = projects.data ?? [];
+  const createProject = useCreateProject();
+  const createPage = useCreatePage();
+  const router = useRouter();
 
   const badges: Record<string, number | undefined> = {
     inbox: inbox.data?.length,
     leads: leads.data?.filter((l) => l.stage !== "won" && l.stage !== "lost").length,
   };
+
+  function onNewProject() {
+    if (!workspaceId || createProject.isPending) return;
+    const name = window.prompt("Project name", "New project")?.trim();
+    if (!name) return;
+    createProject.mutate(
+      { workspaceId, name },
+      { onSuccess: (p) => router.push(`/board/${p.id}`) },
+    );
+  }
+
+  function onNewPinnedNote() {
+    if (!workspaceId || createPage.isPending) return;
+    createPage.mutate(
+      { workspaceId, title: "Untitled" },
+      {
+        onSuccess: (p) => router.push(`/notes/${encodeURIComponent(p.title)}`),
+      },
+    );
+  }
 
   return (
     <aside
@@ -203,7 +228,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <Section title="Projects" onAdd={() => {}}>
+      <Section title="Projects" onAdd={onNewProject}>
         {visibleProjects.length === 0 && !projects.isLoading && (
           <div className="px-2.5 py-1.5 text-[12px] text-fg-3">No projects yet.</div>
         )}
@@ -225,7 +250,7 @@ export function Sidebar() {
       </Section>
 
       {pinnedPages.length > 0 && (
-        <Section title="Pinned notes">
+        <Section title="Pinned notes" onAdd={onNewPinnedNote}>
           {pinnedPages.map((n) => (
             <Link
               key={n.id}

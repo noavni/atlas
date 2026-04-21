@@ -1,7 +1,14 @@
 "use client";
 
 import ForceGraph2D, { type ForceGraphMethods } from "react-force-graph-2d";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { GraphNode } from "@/lib/queries/graph";
 
 type Edge = { source: string; target: string };
@@ -10,10 +17,17 @@ interface GraphCanvasProps {
   nodes: GraphNode[];
   edges: Edge[];
   onSelect?: (n: GraphNode | null) => void;
+  onOpen?: (n: GraphNode) => void;
 }
 
-type FGNode = GraphNode & { x?: number; y?: number; color?: string };
+type FGNode = GraphNode & { x?: number; y?: number; color?: string; __degree?: number };
 type FGLink = { source: string; target: string };
+
+export interface GraphCanvasHandle {
+  zoomBy: (factor: number) => void;
+  zoomToFit: () => void;
+  focusNode: (id: string) => void;
+}
 
 function readVar(name: string, fallback: string): string {
   if (typeof window === "undefined") return fallback;
@@ -21,14 +35,10 @@ function readVar(name: string, fallback: string): string {
   return v || fallback;
 }
 
-const KIND_COLOR: Record<string, { css: string; fallback: string }> = {
-  page: { css: "--accent-primary", fallback: "#3D49F5" },
-  lead: { css: "--apricot-500", fallback: "#FF8A3D" },
-  task: { css: "--sage-500", fallback: "#4F9868" },
-  card: { css: "--sage-500", fallback: "#4F9868" },
-};
-
-export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
+export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function GraphCanvas(
+  { nodes, edges, onSelect, onOpen },
+  ref,
+) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const fgRef = useRef<ForceGraphMethods<FGNode, FGLink> | undefined>(undefined);
   const [size, setSize] = useState({ w: 800, h: 600 });
@@ -37,20 +47,22 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
   const [colors, setColors] = useState({
     bg: "#FBFAF7",
     fg1: "#1A1D21",
-    fg3: "#6B7280",
     edge: "#E5E3DC",
     accent: "#3D49F5",
     accentTint: "#EDEEFD",
+    hub: "#FF8A3D",
+    orphan: "#B8B6B0",
   });
 
   useEffect(() => {
     setColors({
       bg: readVar("--surface-raised", "#FBFAF7"),
       fg1: readVar("--fg-1", "#1A1D21"),
-      fg3: readVar("--fg-3", "#6B7280"),
       edge: readVar("--border-subtle", "#E5E3DC"),
       accent: readVar("--accent-primary", "#3D49F5"),
       accentTint: readVar("--accent-tint", "#EDEEFD"),
+      hub: readVar("--apricot-500", "#FF8A3D"),
+      orphan: readVar("--fg-4", "#B8B6B0"),
     });
   }, []);
 
@@ -65,25 +77,30 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
     return () => ro.disconnect();
   }, []);
 
-  const graphData = useMemo(() => {
+  const { graphData, degree } = useMemo(() => {
+    const deg = new Map<string, number>();
+    for (const n of nodes) deg.set(n.id, 0);
+    for (const e of edges) {
+      deg.set(e.source, (deg.get(e.source) ?? 0) + 1);
+      deg.set(e.target, (deg.get(e.target) ?? 0) + 1);
+    }
     const nodeSet = new Set(nodes.map((n) => n.id));
-    return {
-      nodes: nodes.map((n): FGNode => {
-        const kind = KIND_COLOR[n.kind] ?? KIND_COLOR.page;
-        return { ...n, color: readVar(kind.css, kind.fallback) };
-      }),
-      links: edges
-        .filter((e) => nodeSet.has(e.source) && nodeSet.has(e.target))
-        .map((e): FGLink => ({ source: e.source, target: e.target })),
-    };
+    const fgNodes: FGNode[] = nodes.map((n) => ({
+      ...n,
+      __degree: deg.get(n.id) ?? 0,
+    }));
+    const fgLinks: FGLink[] = edges
+      .filter((e) => nodeSet.has(e.source) && nodeSet.has(e.target))
+      .map((e) => ({ source: e.source, target: e.target }));
+    return { graphData: { nodes: fgNodes, links: fgLinks }, degree: deg };
   }, [nodes, edges]);
 
   useEffect(() => {
     const fg = fgRef.current;
     if (!fg) return;
     try {
-      fg.d3Force("charge")?.strength(-220);
-      fg.d3Force("link")?.distance(70);
+      fg.d3Force("charge")?.strength(-260);
+      fg.d3Force("link")?.distance(90);
     } catch {}
   }, [graphData]);
 
@@ -96,6 +113,36 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
     }
     return out;
   }, [selectedId, edges]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      zoomBy: (factor: number) => {
+        const fg = fgRef.current;
+        if (!fg) return;
+        const z = fg.zoom();
+        fg.zoom(z * factor, 300);
+      },
+      zoomToFit: () => {
+        fgRef.current?.zoomToFit(400, 40);
+      },
+      focusNode: (id: string) => {
+        const fg = fgRef.current;
+        if (!fg) return;
+        const n = graphData.nodes.find((x) => x.id === id);
+        if (!n || n.x == null || n.y == null) return;
+        fg.centerAt(n.x, n.y, 600);
+        fg.zoom(2, 600);
+      },
+    }),
+    [graphData],
+  );
+
+  function colorFor(node: FGNode): string {
+    if (node.__degree === 0) return colors.orphan;
+    if ((node.__degree ?? 0) >= 5) return colors.hub;
+    return colors.accent;
+  }
 
   return (
     <div ref={wrapRef} className="relative h-full w-full">
@@ -116,7 +163,7 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
           if (!selectedId) return 1;
           const s = typeof link.source === "string" ? link.source : (link.source as FGNode).id;
           const t = typeof link.target === "string" ? link.target : (link.target as FGNode).id;
-          return s === selectedId || t === selectedId ? 1.8 : 0.6;
+          return s === selectedId || t === selectedId ? 2 : 0.6;
         }}
         cooldownTime={2500}
         enableNodeDrag
@@ -130,6 +177,15 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
           setSelectedId(node.id);
           onSelect?.(node);
         }}
+        onNodeRightClick={(n) => onOpen?.(n as FGNode)}
+        onNodeDrag={(n) => {
+          (n as FGNode & { fx?: number; fy?: number }).fx = (n as FGNode).x;
+          (n as FGNode & { fx?: number; fy?: number }).fy = (n as FGNode).y;
+        }}
+        onNodeDragEnd={(n) => {
+          (n as FGNode & { fx?: number | null; fy?: number | null }).fx = null;
+          (n as FGNode & { fx?: number | null; fy?: number | null }).fy = null;
+        }}
         nodeCanvasObject={(n, ctx, globalScale) => {
           const node = n as FGNode;
           const id = node.id;
@@ -137,13 +193,15 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
           const isConn = selectedConnected.has(id);
           const isHover = hoverId === id;
           const dim = selectedId && !isSel && !isConn;
+          const deg = degree.get(id) ?? 0;
 
-          const baseR = isSel ? 9 : isConn ? 7 : 5.2;
+          const baseR = isSel ? 10 : deg >= 5 ? 8 : deg === 0 ? 4.2 : 5.6;
           const r = isHover ? baseR + 1.5 : baseR;
+          const fill = colorFor(node);
 
           if (isSel) {
             ctx.beginPath();
-            ctx.arc(node.x ?? 0, node.y ?? 0, r + 5, 0, 2 * Math.PI);
+            ctx.arc(node.x ?? 0, node.y ?? 0, r + 6, 0, 2 * Math.PI);
             ctx.fillStyle = colors.accentTint;
             ctx.globalAlpha = 0.9;
             ctx.fill();
@@ -152,8 +210,8 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
 
           ctx.beginPath();
           ctx.arc(node.x ?? 0, node.y ?? 0, r, 0, 2 * Math.PI);
-          ctx.fillStyle = node.color || colors.accent;
-          ctx.globalAlpha = dim ? 0.25 : 1;
+          ctx.fillStyle = fill;
+          ctx.globalAlpha = dim ? 0.22 : 1;
           ctx.fill();
 
           ctx.lineWidth = 1.5 / globalScale;
@@ -161,7 +219,7 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
           ctx.stroke();
           ctx.globalAlpha = 1;
 
-          if (isSel || isHover || globalScale > 1.4) {
+          if (isSel || isHover || (globalScale > 1.4 && deg > 0)) {
             const label = node.label;
             const fontSize = Math.max(10 / globalScale, 11);
             ctx.font = `${isSel ? 600 : 500} ${fontSize}px var(--font-inter), Inter, system-ui, sans-serif`;
@@ -186,4 +244,4 @@ export function GraphCanvas({ nodes, edges, onSelect }: GraphCanvasProps) {
       />
     </div>
   );
-}
+});

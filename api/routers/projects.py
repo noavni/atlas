@@ -58,6 +58,44 @@ def create_project(
         "created_by": ctx.user_id,
     }
     inserted = client.table("projects").insert(payload).execute().data[0]
+
+    # Auto-create a default board + the standard 5 columns so the project
+    # has a working board on first open (no "empty state" dead-end).
+    board_id = str(uuid4())
+    client.table("boards").insert(
+        {
+            "id": board_id,
+            "project_id": inserted["id"],
+            "workspace_id": str(workspace_id),
+            "name": "Main",
+            "created_by": ctx.user_id,
+        }
+    ).execute()
+
+    default_cols = [
+        ("Backlog", "backlog"),
+        ("To do", "todo"),
+        ("In progress", "in_progress"),
+        ("In review", "in_review"),
+        ("Done", "done"),
+    ]
+    col_rank_prev: str | None = None
+    col_rows = []
+    for name, state in default_cols:
+        col_rank_prev = lexorank.between(col_rank_prev, None)
+        col_rows.append(
+            {
+                "id": str(uuid4()),
+                "board_id": board_id,
+                "workspace_id": str(workspace_id),
+                "name": name,
+                "rank": col_rank_prev,
+                "default_workflow_state": state,
+                "created_by": ctx.user_id,
+            }
+        )
+    client.table("columns").insert(col_rows).execute()
+
     return Project.model_validate(inserted)
 
 

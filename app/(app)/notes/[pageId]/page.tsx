@@ -30,10 +30,18 @@ export default function NotePage({ params }: Params) {
 
   function onNew() {
     if (!workspaceId) return;
+    const taken = new Set((pages.data ?? []).map((p) => p.title));
+    let t = "Untitled";
+    if (taken.has(t))
+      for (let n = 2; n < 1000 && taken.has(`Untitled ${n}`); n++) t = `Untitled ${n + 1}`;
     createPage.mutate(
-      { workspaceId, title: "Untitled" },
+      { workspaceId, title: t },
       {
         onSuccess: (p) => router.push(`/notes/${encodeURIComponent(p.title)}`),
+        onError: (err) =>
+          window.alert(
+            `Could not create note: ${err instanceof Error ? err.message : String(err)}`,
+          ),
       },
     );
   }
