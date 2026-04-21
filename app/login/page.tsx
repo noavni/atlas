@@ -3,15 +3,34 @@
 import { useState } from "react";
 import { Button } from "@/components/primitives/Button";
 import { Input } from "@/components/primitives/Input";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Magic-link integration lands with Phase 1.
-    setSent(true);
+    setError(null);
+    setSubmitting(true);
+    try {
+      const supabase = supabaseBrowser();
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo:
+            typeof window !== "undefined" ? `${window.location.origin}/inbox` : undefined,
+        },
+      });
+      if (error) throw error;
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send link.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -36,8 +55,9 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
-            <Button type="submit" variant="primary" fullWidth>
-              Send sign-in link
+            {error && <div className="text-sm text-danger-fg">{error}</div>}
+            <Button type="submit" variant="primary" fullWidth disabled={submitting}>
+              {submitting ? "Sending…" : "Send sign-in link"}
             </Button>
           </form>
         )}
