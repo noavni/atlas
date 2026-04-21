@@ -16,11 +16,14 @@ from api.routers.attachments import router as attachments_router
 from api.routers.boards import router as boards_router
 from api.routers.cards import router as cards_router
 from api.routers.columns import router as columns_router
+from api.routers.graph import router as graph_router
 from api.routers.health import router as health_router
 from api.routers.inbox import router as inbox_router
 from api.routers.me import router as me_router
+from api.routers.organize import router as organize_router
 from api.routers.pages import router as pages_router
 from api.routers.projects import router as projects_router
+from api.routers.search import router as search_router
 from api.routers.workspaces import router as workspaces_router
 
 app = FastAPI(
@@ -56,6 +59,9 @@ app.include_router(cards_router)
 app.include_router(pages_router)
 app.include_router(inbox_router)
 app.include_router(attachments_router)
+app.include_router(search_router)
+app.include_router(graph_router)
+app.include_router(organize_router)
 
 # Internal (secret-protected)
 app.include_router(worker_drain_router)

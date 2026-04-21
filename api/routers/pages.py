@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
-from api._core import lexorank
+from api._core import lexorank, pgmq
 from api._core.auth import UserContext, require_user
 from api._core.blocks.extract import ExtractedBlock, diff, extract
 from api._core.blocks.linkparser import parse_links
@@ -120,6 +120,7 @@ def create_page(
     _sync_blocks_and_links(
         client, page_id=str(page_id), workspace_id=str(workspace_id), doc=payload["content"]
     )
+    _enqueue_embed(str(page_id))
     return Page.model_validate(inserted)
 
 
@@ -161,7 +162,7 @@ def update_page(
         raise VersionConflict(current=latest[0] if latest else None)
 
     new_row = rows[0]
-    # If content changed, diff blocks + rebuild links for this page
+    # If content changed, diff blocks + rebuild links + re-embed
     if body.content is not None:
         _sync_blocks_and_links(
             client,
@@ -169,6 +170,7 @@ def update_page(
             workspace_id=new_row["workspace_id"],
             doc=body.content,
         )
+        _enqueue_embed(str(page_id))
     # If title changed, incoming links were already correct (FK on page id);
     # we only need to re-resolve any *unresolved* links whose text matches
     # the new title.
@@ -298,3 +300,11 @@ def _resolve_incoming_links(
     ).eq("workspace_id", workspace_id).is_("target_page_id", "null").ilike(
         "link_text", new_title
     ).execute()
+
+
+def _enqueue_embed(page_id: str) -> None:
+    """Best-effort enqueue — never block a user write on queue outage."""
+    try:
+        pgmq.send("embedding", {"kind": "page", "id": page_id})
+    except Exception:
+        pass

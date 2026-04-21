@@ -8,6 +8,7 @@ import { Icon } from "@/components/primitives/Icon";
 import { useUI } from "@/lib/store/ui";
 import { useMe } from "@/lib/queries/me";
 import { usePages } from "@/lib/queries/pages";
+import { useSearch } from "@/lib/queries/search";
 import { cn } from "@/lib/utils";
 
 interface Entry {
@@ -43,6 +44,7 @@ export function CommandPalette() {
   const me = useMe();
   const firstWorkspaceId = me.data?.workspaces[0]?.id;
   const pages = usePages(firstWorkspaceId);
+  const serverSearch = useSearch(firstWorkspaceId, query);
 
   // ⌘K / Ctrl-K binding
   useEffect(() => {
@@ -83,13 +85,28 @@ export function CommandPalette() {
 
   const ranked = useMemo(() => {
     if (!query) return entries.slice(0, 20);
-    return entries
+    const local = entries
       .map((e) => ({ e, s: score(query, e.label) }))
       .filter((r) => r.s >= 0)
       .sort((a, b) => b.s - a.s)
-      .slice(0, 20)
       .map((r) => r.e);
-  }, [entries, query]);
+    const server: Entry[] = (serverSearch.data ?? []).map((hit) => ({
+      id: `srv-${hit.kind}-${hit.id}`,
+      label: hit.title || hit.snippet.slice(0, 60) || "(untitled)",
+      hint: hit.kind === "card" ? "Card" : hit.kind === "page" ? "Note" : "Inbox",
+      href:
+        hit.kind === "page"
+          ? `/notes/${encodeURIComponent(hit.title)}`
+          : hit.kind === "inbox"
+          ? `/inbox`
+          : `/board`,
+    }));
+    const dedup = new Map<string, Entry>();
+    for (const e of [...local, ...server]) {
+      if (!dedup.has(e.label.toLowerCase())) dedup.set(e.label.toLowerCase(), e);
+    }
+    return Array.from(dedup.values()).slice(0, 20);
+  }, [entries, query, serverSearch.data]);
 
   return (
     <AnimatePresence>

@@ -87,7 +87,9 @@ def _dispatch(queue: str, payload: dict[str, Any]) -> None:
         # Until then the payload just gets archived.
         return
     if queue == "embedding":
-        # Phase 4: Voyage voyage-3-large batch embed + HNSW upsert.
+        from api._core.jobs.embed import handle_sync as embed_handle
+
+        embed_handle(payload)
         return
     if queue == "organize":
         # Phase 4: Claude-powered inbox organize suggestion.
