@@ -60,54 +60,54 @@ body {
 }
 .atlas-halo {
   position: absolute;
-  inset: -14%;
+  inset: -22%;
   border-radius: 50%;
   background: radial-gradient(
     circle at 38% 32%,
-    rgba(107, 120, 239, 0.35),
+    rgba(107, 120, 239, 0.55),
     transparent 62%
   );
-  filter: blur(8px);
-  animation: atlas-halo-pulse 4.2s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  filter: blur(10px);
+  animation: atlas-halo-pulse 3.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
   pointer-events: none;
 }
 [data-theme="dark"] .atlas-halo {
   background: radial-gradient(
     circle at 38% 32%,
-    rgba(143, 157, 255, 0.55),
+    rgba(143, 157, 255, 0.7),
     transparent 62%
   );
 }
 @keyframes atlas-halo-pulse {
   0%,
   100% {
-    opacity: 0.55;
-    transform: scale(1);
+    opacity: 0.6;
+    transform: scale(0.94);
   }
   50% {
-    opacity: 0.95;
-    transform: scale(1.08);
+    opacity: 1;
+    transform: scale(1.14);
   }
 }
 .atlas-orb {
-  animation: atlas-orb-float 6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  animation: atlas-orb-float 5.5s cubic-bezier(0.32, 0.72, 0, 1) infinite;
   transform-origin: 50% 50%;
 }
 .atlas-glow {
-  animation: atlas-glow-shift 7s ease-in-out infinite;
+  animation: atlas-glow-shift 6s ease-in-out infinite;
 }
 .atlas-arc {
-  animation: atlas-arc-rotate 14s linear infinite;
+  animation: atlas-arc-rotate 9s linear infinite;
+  transform-origin: 32px 32px;
+  opacity: 0.8;
+}
+.atlas-arc-b {
+  animation: atlas-arc-rotate 13s linear infinite reverse;
   transform-origin: 32px 32px;
   opacity: 0.6;
 }
-.atlas-arc-b {
-  animation: atlas-arc-rotate 20s linear infinite reverse;
-  transform-origin: 32px 32px;
-  opacity: 0.4;
-}
 .atlas-hi {
-  animation: atlas-hi-drift 6s ease-in-out infinite;
+  animation: atlas-hi-drift 5.5s ease-in-out infinite;
 }
 @keyframes atlas-orb-float {
   0%,
@@ -115,7 +115,7 @@ body {
     transform: translateY(0) scale(1);
   }
   50% {
-    transform: translateY(-1.5px) scale(1.015);
+    transform: translateY(-2.5px) scale(1.025);
   }
 }
 @keyframes atlas-glow-shift {

@@ -49,8 +49,8 @@ export function AtlasLogo({ size = 28, withHalo = true, className }: AtlasLogoPr
             rx="26"
             ry="9"
             fill="none"
-            stroke="rgba(255,255,255,0.25)"
-            strokeWidth={size < 24 ? 0.8 : 0.6}
+            stroke="rgba(255,255,255,0.45)"
+            strokeWidth={size < 24 ? 1 : 0.8}
           />
           {size >= 24 && (
             <ellipse
@@ -60,8 +60,8 @@ export function AtlasLogo({ size = 28, withHalo = true, className }: AtlasLogoPr
               rx="26"
               ry="15"
               fill="none"
-              stroke="rgba(255,255,255,0.18)"
-              strokeWidth="0.5"
+              stroke="rgba(255,255,255,0.32)"
+              strokeWidth="0.7"
             />
           )}
           <circle cx="32" cy="32" r="26" fill="url(#atlas-rim)" />

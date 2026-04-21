@@ -169,8 +169,8 @@ export function Sidebar() {
       )}
     >
       <div className="px-1.5 pb-3 pt-1.5">
-        <div className="flex items-center gap-2.5 rounded-[10px] p-1.5 transition-colors hover:bg-surface-2">
-          <AtlasLogo size={28} />
+        <div className="flex items-center gap-3 rounded-[10px] p-1.5 transition-colors hover:bg-surface-2">
+          <AtlasLogo size={36} />
           <div className="min-w-0">
             <div className="truncate text-[13px] font-semibold text-fg-1">Atlas</div>
             <div className="mt-px truncate text-[11px] text-fg-3">Private workspace</div>
@@ -200,10 +200,10 @@ export function Sidebar() {
             key={p.id}
             href={`/board/${p.id}`}
             prefetch
-            className="flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
+            className="group flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
           >
             <span
-              className="h-3 w-3 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/5"
+              className="h-3.5 w-3.5 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/10 transition-transform duration-200 group-hover:scale-110"
               style={{ background: dotColorFor(p.id) }}
               aria-hidden="true"
             />
