@@ -8,7 +8,6 @@ Vercel's rewrite (/api/:path* -> /api/index) forwards the raw path.
 from __future__ import annotations
 
 import logging
-import traceback
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -75,10 +74,10 @@ log = logging.getLogger("atlas")
 
 
 @app.exception_handler(Exception)
-async def debug_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Private two-user app — surface exception details in the response so
-    the frontend can show them during debug. Swap for a Sentry handler once
-    the shape stabilises."""
+async def error_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Private two-user app — log the full traceback server-side, ship a
+    minimal shape to the client. We intentionally don't send stack traces
+    to the browser in steady state."""
     log.exception("unhandled error on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=500,
@@ -86,7 +85,6 @@ async def debug_exception_handler(request: Request, exc: Exception) -> JSONRespo
             "error": "internal",
             "message": str(exc),
             "type": type(exc).__name__,
-            "trace": traceback.format_exc().splitlines()[-12:],
         },
     )
 
