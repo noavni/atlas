@@ -1,6 +1,7 @@
 "use client";
 
 import { CommandPalette } from "@/components/palette/CommandPalette";
+import { QuickCapture } from "@/components/inbox/QuickCapture";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
@@ -21,6 +22,7 @@ export function AppShell({ crumbs, children }: AppShellProps) {
         <div className="flex-1 overflow-auto">{children}</div>
       </main>
       <CommandPalette />
+      <QuickCapture />
     </div>
   );
 }
