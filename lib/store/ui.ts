@@ -12,6 +12,7 @@ interface UIState {
   sidebarExpanded: boolean;
   commandPaletteOpen: boolean;
   quickCaptureOpen: boolean;
+  newProjectOpen: boolean;
   setTheme: (t: Theme) => void;
   toggleTheme: () => void;
   setDir: (d: Direction) => void;
@@ -19,6 +20,7 @@ interface UIState {
   setSidebarExpanded: (v: boolean) => void;
   setCommandPaletteOpen: (v: boolean) => void;
   setQuickCaptureOpen: (v: boolean) => void;
+  setNewProjectOpen: (v: boolean) => void;
 }
 
 export const useUI = create<UIState>()(
@@ -29,6 +31,7 @@ export const useUI = create<UIState>()(
       sidebarExpanded: true,
       commandPaletteOpen: false,
       quickCaptureOpen: false,
+      newProjectOpen: false,
       setTheme: (t) => set({ theme: t }),
       toggleTheme: () => set({ theme: get().theme === "dark" ? "light" : "dark" }),
       setDir: (d) => set({ dir: d }),
@@ -36,6 +39,7 @@ export const useUI = create<UIState>()(
       setSidebarExpanded: (v) => set({ sidebarExpanded: v }),
       setCommandPaletteOpen: (v) => set({ commandPaletteOpen: v }),
       setQuickCaptureOpen: (v) => set({ quickCaptureOpen: v }),
+      setNewProjectOpen: (v) => set({ newProjectOpen: v }),
     }),
     {
       name: "atlas-ui",

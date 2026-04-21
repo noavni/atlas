@@ -53,6 +53,7 @@ export function useBacklinks(pageId: string | undefined) {
 interface CreatePageInput {
   workspaceId: string;
   title: string;
+  id?: string;
   parentPageId?: string;
 }
 
@@ -60,7 +61,7 @@ export function useCreatePage() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: CreatePageInput) => {
-      const id = uuid();
+      const id = input.id ?? uuid();
       return apiFetch<PageDoc>(`/v1/workspaces/${input.workspaceId}/pages`, {
         method: "POST",
         idempotencyKey: `page.create:${id}`,
@@ -71,7 +72,39 @@ export function useCreatePage() {
         }),
       });
     },
-    onSuccess: (_page, input) => {
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: ["pages", input.workspaceId] });
+      const prev = qc.getQueryData<PageSummary[]>(["pages", input.workspaceId]);
+      const now = new Date().toISOString();
+      const optimistic: PageSummary = {
+        id: input.id ?? uuid(),
+        workspace_id: input.workspaceId,
+        title: input.title,
+        parent_page_id: input.parentPageId ?? null,
+        rank: "0|zzzz",
+        version: 1,
+        created_at: now,
+        updated_at: now,
+      };
+      qc.setQueryData<PageSummary[]>(
+        ["pages", input.workspaceId],
+        [optimistic, ...(prev ?? [])],
+      );
+      // Also seed the detail cache so /notes/{title} renders instantly
+      qc.setQueryData<PageDoc>(["page", optimistic.id], {
+        ...optimistic,
+        content: {
+          type: "doc",
+          content: [{ type: "paragraph" }],
+        },
+      });
+      return { prev, optimisticId: optimistic.id };
+    },
+    onError: (_e, input, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["pages", input.workspaceId], ctx.prev);
+    },
+    onSuccess: (page, input) => {
+      qc.setQueryData(["page", page.id], page);
       qc.invalidateQueries({ queryKey: ["pages", input.workspaceId] });
     },
   });

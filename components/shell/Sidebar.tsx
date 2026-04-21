@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { v4 as uuid } from "uuid";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
@@ -23,10 +24,11 @@ import { useInbox } from "@/lib/queries/inbox";
 import { useLeads } from "@/lib/queries/leads";
 import { useMe } from "@/lib/queries/me";
 import { usePages } from "@/lib/queries/pages";
-import { useCreateProject, useProjects } from "@/lib/queries/projects";
+import { useProjects } from "@/lib/queries/projects";
 import { useCreatePage } from "@/lib/queries/pages";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useProjectColors } from "@/lib/store/projectColors";
 import { useUI } from "@/lib/store/ui";
 
 // Deterministic dot colors picked from the token palette so each project
@@ -169,9 +171,10 @@ export function Sidebar() {
   const leads = useLeads(workspaceId);
   const pinnedPages = pages.data?.slice(0, 5) ?? [];
   const visibleProjects = projects.data ?? [];
-  const createProject = useCreateProject();
   const createPage = useCreatePage();
   const router = useRouter();
+  const setNewProjectOpen = useUI((s) => s.setNewProjectOpen);
+  const getProjectColor = useProjectColors((s) => s.getColor);
 
   const badges: Record<string, number | undefined> = {
     inbox: inbox.data?.length,
@@ -179,23 +182,26 @@ export function Sidebar() {
   };
 
   function onNewProject() {
-    if (!workspaceId || createProject.isPending) return;
-    const name = window.prompt("Project name", "New project")?.trim();
-    if (!name) return;
-    createProject.mutate(
-      { workspaceId, name },
-      { onSuccess: (p) => router.push(`/board/${p.id}`) },
-    );
+    setNewProjectOpen(true);
   }
 
   function onNewPinnedNote() {
     if (!workspaceId || createPage.isPending) return;
-    createPage.mutate(
-      { workspaceId, title: "Untitled" },
-      {
-        onSuccess: (p) => router.push(`/notes/${encodeURIComponent(p.title)}`),
-      },
-    );
+    const taken = new Set((pages.data ?? []).map((p) => p.title));
+    let t = "Untitled";
+    if (taken.has(t)) {
+      for (let n = 2; n < 1000; n++) {
+        if (!taken.has(`Untitled ${n}`)) {
+          t = `Untitled ${n}`;
+          break;
+        }
+      }
+    }
+    const id = uuid();
+    // Navigate immediately; the optimistic cache insertion in useCreatePage
+    // makes the new note routable before the server responds.
+    router.push(`/notes/${encodeURIComponent(t)}`);
+    createPage.mutate({ workspaceId, title: t, id });
   }
 
   return (
@@ -241,7 +247,7 @@ export function Sidebar() {
           >
             <span
               className="h-3.5 w-3.5 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/10 transition-transform duration-200 group-hover:scale-110"
-              style={{ background: dotColorFor(p.id) }}
+              style={{ background: getProjectColor(p.id) ?? dotColorFor(p.id) }}
               aria-hidden="true"
             />
             <span className="truncate">{p.name}</span>

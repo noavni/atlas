@@ -1,12 +1,16 @@
 "use client";
 
 import { AnimatePresence, LayoutGroup, type PanInfo } from "framer-motion";
+import { Plus } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Column } from "./Column";
+import { Icon } from "@/components/primitives/Icon";
 import {
   useBoards,
   useCards,
   useColumns,
+  useCreateBoard,
+  useCreateColumn,
 } from "@/lib/queries/boards";
 import { useCreateCard, useMoveCard } from "@/lib/queries/cards";
 import { useBoardRealtime } from "@/lib/supabase/realtime";
@@ -30,7 +34,44 @@ export function Board({ projectId }: BoardProps) {
   const columns = useColumns(firstBoardId);
   const cards = useCards(firstBoardId);
   const createCard = useCreateCard();
+  const createBoard = useCreateBoard();
+  const createColumn = useCreateColumn();
   const moveCard = useMoveCard();
+
+  const DEFAULT_COLS: { name: string; state: string }[] = [
+    { name: "Backlog", state: "backlog" },
+    { name: "To do", state: "todo" },
+    { name: "In progress", state: "in_progress" },
+    { name: "In review", state: "in_review" },
+    { name: "Done", state: "done" },
+  ];
+
+  async function bootstrap() {
+    if (!projectId) return;
+    let boardId = firstBoardId;
+    if (!boardId) {
+      const board = await createBoard.mutateAsync({ projectId, name: "Main" });
+      boardId = board.id;
+    }
+    for (const { name, state } of DEFAULT_COLS) {
+      await createColumn.mutateAsync({
+        boardId,
+        name,
+        default_workflow_state: state,
+      });
+    }
+  }
+
+  async function addColumn() {
+    const name = window.prompt("Column name", "New column")?.trim();
+    if (!name) return;
+    let boardId = firstBoardId;
+    if (!boardId) {
+      const board = await createBoard.mutateAsync({ projectId, name: "Main" });
+      boardId = board.id;
+    }
+    await createColumn.mutateAsync({ boardId, name });
+  }
 
   const [hoverColumn, setHoverColumn] = useState<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -102,15 +143,39 @@ export function Board({ projectId }: BoardProps) {
     [firstBoardId, byColumn, cards.data, moveCard, columnAtPoint],
   );
 
-  if (boards.isLoading || columns.isLoading || cards.isLoading) {
+  if (boards.isLoading) {
     return <BoardSkeleton />;
   }
-  if (!firstBoardId) {
+  if (!firstBoardId || (columns.data?.length ?? 0) === 0) {
     return (
-      <div className="flex items-center justify-center py-16 text-center text-fg-3">
-        <div>
-          <div className="mb-1 text-base text-fg-1">No boards yet.</div>
-          <div className="text-sm">Create one — drag cards, hit “N” for a new card.</div>
+      <div className="flex h-full items-center justify-center px-6 py-16">
+        <div className="w-full max-w-md rounded-2xl border border-border-subtle bg-surface-raised p-8 text-center shadow-1">
+          <div className="mb-1 font-display text-[22px] font-semibold text-fg-1">
+            Set up this board
+          </div>
+          <div className="mb-5 text-[13px] text-fg-3">
+            We'll drop in five standard columns — Backlog through Done — so you
+            can start working immediately.
+          </div>
+          <button
+            type="button"
+            onClick={bootstrap}
+            disabled={createBoard.isPending || createColumn.isPending}
+            className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-[13px] font-medium text-fg-on-accent shadow-1 transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            {createBoard.isPending || createColumn.isPending
+              ? "Creating…"
+              : "Create default columns"}
+          </button>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={addColumn}
+              className="text-[12px] font-medium text-fg-3 hover:text-fg-1"
+            >
+              Or add one column at a time
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -142,6 +207,13 @@ export function Board({ projectId }: BoardProps) {
             />
           ))}
         </AnimatePresence>
+        <button
+          type="button"
+          onClick={addColumn}
+          className="flex h-11 w-[260px] shrink-0 items-center justify-center gap-1.5 rounded-md border border-dashed border-border-strong bg-transparent text-[12.5px] font-medium text-fg-3 transition-colors hover:border-accent hover:bg-accent-tint hover:text-accent"
+        >
+          <Icon icon={Plus} size={13} /> Add column
+        </button>
       </LayoutGroup>
     </div>
   );

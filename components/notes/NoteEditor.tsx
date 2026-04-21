@@ -3,6 +3,7 @@
 import { BubbleMenu, EditorContent, FloatingMenu, useEditor } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import CharacterCount from "@tiptap/extension-character-count";
+import Color from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
 import Link from "@tiptap/extension-link";
 import Mention from "@tiptap/extension-mention";
@@ -10,9 +11,14 @@ import Placeholder from "@tiptap/extension-placeholder";
 import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import TextAlign from "@tiptap/extension-text-align";
+import TextStyle from "@tiptap/extension-text-style";
 import Typography from "@tiptap/extension-typography";
 import Underline from "@tiptap/extension-underline";
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   Bold,
   Code2,
   Heading1,
@@ -23,12 +29,13 @@ import {
   List,
   ListOrdered,
   ListTodo,
+  Palette,
   Quote,
   Strikethrough,
   Underline as UnderlineIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildMentionSuggestion } from "./mentionSuggestion";
 import { Icon } from "@/components/primitives/Icon";
 import { useLeads } from "@/lib/queries/leads";
@@ -81,7 +88,10 @@ export function NoteEditor({ page }: NoteEditorProps) {
         HTMLAttributes: { class: "atlas-link" },
       }),
       Underline,
-      Highlight.configure({ multicolor: false }),
+      Highlight.configure({ multicolor: true }),
+      TextStyle,
+      Color,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Typography,
       CharacterCount.configure({ limit: null }),
       TaskList,
@@ -186,16 +196,32 @@ export function NoteEditor({ page }: NoteEditorProps) {
           icon={Strikethrough}
         />
         <BubbleBtn
-          label="Highlight"
-          onClick={() => editor.chain().focus().toggleHighlight().run()}
-          active={editor.isActive("highlight")}
-          icon={Highlighter}
-        />
-        <BubbleBtn
           label="Code"
           onClick={() => editor.chain().focus().toggleCode().run()}
           active={editor.isActive("code")}
           icon={Code2}
+        />
+        <div className="mx-0.5 h-5 w-px bg-border-subtle" />
+        <ColorPopover editor={editor} />
+        <HighlightPopover editor={editor} />
+        <div className="mx-0.5 h-5 w-px bg-border-subtle" />
+        <BubbleBtn
+          label="Align left"
+          onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          active={editor.isActive({ textAlign: "left" })}
+          icon={AlignLeft}
+        />
+        <BubbleBtn
+          label="Align center"
+          onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          active={editor.isActive({ textAlign: "center" })}
+          icon={AlignCenter}
+        />
+        <BubbleBtn
+          label="Align right"
+          onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          active={editor.isActive({ textAlign: "right" })}
+          icon={AlignRight}
         />
         <div className="mx-0.5 h-5 w-px bg-border-subtle" />
         <BubbleBtn
@@ -301,6 +327,112 @@ function FloatBtn({
     >
       <Icon icon={icon} size={13} />
     </button>
+  );
+}
+
+const TEXT_COLORS: { key: string; css: string; label: string }[] = [
+  { key: "default", css: "", label: "Default" },
+  { key: "indigo", css: "var(--indigo-500)", label: "Indigo" },
+  { key: "sage", css: "var(--sage-500)", label: "Sage" },
+  { key: "apricot", css: "var(--apricot-500)", label: "Apricot" },
+  { key: "amber", css: "var(--amber-500)", label: "Amber" },
+  { key: "persimmon", css: "var(--persimmon-500)", label: "Persimmon" },
+  { key: "fg3", css: "var(--fg-3)", label: "Muted" },
+];
+
+const HIGHLIGHT_COLORS: { key: string; css: string; label: string }[] = [
+  { key: "none", css: "", label: "None" },
+  { key: "yellow", css: "color-mix(in oklch, var(--amber-500) 30%, transparent)", label: "Yellow" },
+  { key: "green", css: "color-mix(in oklch, var(--sage-500) 30%, transparent)", label: "Green" },
+  { key: "blue", css: "color-mix(in oklch, var(--indigo-500) 22%, transparent)", label: "Blue" },
+  { key: "pink", css: "color-mix(in oklch, var(--persimmon-500) 25%, transparent)", label: "Pink" },
+  { key: "orange", css: "color-mix(in oklch, var(--apricot-500) 30%, transparent)", label: "Orange" },
+];
+
+function ColorPopover({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <BubbleBtn
+        label="Text color"
+        onClick={() => setOpen((v) => !v)}
+        active={open}
+        icon={Palette}
+      />
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onMouseDown={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1.5 rounded-lg border border-border-subtle bg-surface-raised p-2 shadow-3">
+            {TEXT_COLORS.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                title={c.label}
+                onClick={() => {
+                  if (c.key === "default") editor.chain().focus().unsetColor().run();
+                  else editor.chain().focus().setColor(c.css).run();
+                  setOpen(false);
+                }}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-border-subtle transition-transform hover:scale-110"
+                style={{
+                  background: c.key === "default" ? "var(--surface-1)" : c.css,
+                  color: c.key === "default" ? "var(--fg-1)" : "#fff",
+                }}
+              >
+                {c.key === "default" && "A"}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function HighlightPopover({ editor }: { editor: Editor }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <BubbleBtn
+        label="Highlight"
+        onClick={() => setOpen((v) => !v)}
+        active={editor.isActive("highlight")}
+        icon={Highlighter}
+      />
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onMouseDown={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1.5 rounded-lg border border-border-subtle bg-surface-raised p-2 shadow-3">
+            {HIGHLIGHT_COLORS.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                title={c.label}
+                onClick={() => {
+                  if (c.key === "none") editor.chain().focus().unsetHighlight().run();
+                  else editor.chain().focus().setHighlight({ color: c.css }).run();
+                  setOpen(false);
+                }}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-border-subtle transition-transform hover:scale-110"
+                style={{
+                  background: c.key === "none" ? "var(--surface-1)" : c.css,
+                }}
+              >
+                {c.key === "none" && <span className="text-[10px] text-fg-3">—</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 

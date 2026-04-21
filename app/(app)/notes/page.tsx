@@ -3,6 +3,7 @@
 import { NotebookPen, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { v4 as uuid } from "uuid";
 import { AppShell } from "@/components/shell/AppShell";
 import { Button } from "@/components/primitives/Button";
 import { EmptyState } from "@/components/shell/PageHeading";
@@ -32,18 +33,12 @@ export default function NotesIndexPage() {
       console.warn("No workspace yet — cannot create note.");
       return;
     }
-    createPage.mutate(
-      { workspaceId, title: nextUntitled() },
-      {
-        onSuccess: (p) => router.push(`/notes/${encodeURIComponent(p.title)}`),
-        onError: (err) => {
-          console.error("Create page failed", err);
-          window.alert(
-            `Could not create note: ${err instanceof Error ? err.message : String(err)}`,
-          );
-        },
-      },
-    );
+    const title = nextUntitled();
+    const id = uuid();
+    // Navigate instantly; optimistic cache already has the new page so the
+    // target route renders without waiting for the API round-trip.
+    router.push(`/notes/${encodeURIComponent(title)}`);
+    createPage.mutate({ workspaceId, id, title });
   }
 
   return (

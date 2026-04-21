@@ -33,17 +33,15 @@ export default function NotePage({ params }: Params) {
     const taken = new Set((pages.data ?? []).map((p) => p.title));
     let t = "Untitled";
     if (taken.has(t))
-      for (let n = 2; n < 1000 && taken.has(`Untitled ${n}`); n++) t = `Untitled ${n + 1}`;
-    createPage.mutate(
-      { workspaceId, title: t },
-      {
-        onSuccess: (p) => router.push(`/notes/${encodeURIComponent(p.title)}`),
-        onError: (err) =>
-          window.alert(
-            `Could not create note: ${err instanceof Error ? err.message : String(err)}`,
-          ),
-      },
-    );
+      for (let n = 2; n < 1000; n++) {
+        if (!taken.has(`Untitled ${n}`)) {
+          t = `Untitled ${n}`;
+          break;
+        }
+      }
+    const newId = crypto.randomUUID();
+    router.push(`/notes/${encodeURIComponent(t)}`);
+    createPage.mutate({ workspaceId, id: newId, title: t });
   }
 
   return (

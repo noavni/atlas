@@ -5,6 +5,7 @@ import { QuickCapture } from "@/components/inbox/QuickCapture";
 import { ImportLeadsModal } from "@/components/leads/ImportLeadsModal";
 import { LeadDrawer } from "@/components/leads/LeadDrawer";
 import { NewLeadModal } from "@/components/leads/NewLeadModal";
+import { NewProjectModal } from "@/components/projects/NewProjectModal";
 import { PrefetchBoot } from "@/components/providers/PrefetchBoot";
 import { BottomTabBar } from "./BottomTabBar";
 import { Sidebar } from "./Sidebar";
@@ -44,6 +45,7 @@ export function AppShell({ crumbs, children, fullHeight = false }: AppShellProps
       <QuickCapture />
       <NewLeadModal />
       <ImportLeadsModal />
+      <NewProjectModal />
       <LeadDrawer />
       <BottomTabBar />
     </div>
