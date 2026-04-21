@@ -3,7 +3,7 @@
 import { use } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { BacklinksPanel } from "@/components/notes/BacklinksPanel";
-import { NoteEditor } from "@/components/notes/NoteEditor";
+import { NoteEditor } from "@/components/notes/NoteEditorLazy";
 import { useMe } from "@/lib/queries/me";
 import { usePage, usePages } from "@/lib/queries/pages";
 

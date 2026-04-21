@@ -7,6 +7,7 @@ import {
   Source_Serif_4,
 } from "next/font/google";
 import { AtlasLogoDefs } from "@/components/brand/AtlasLogo";
+import { ThemeBoot } from "@/components/providers/ThemeBoot";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
@@ -63,6 +64,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" dir="ltr" data-theme="light" suppressHydrationWarning className={fontClasses}>
+      <head>
+        <ThemeBoot />
+      </head>
       <body>
         <AtlasLogoDefs />
         <QueryProvider>

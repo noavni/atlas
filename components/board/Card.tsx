@@ -88,7 +88,11 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
         draggable ? "cursor-grab active:cursor-grabbing" : "",
         className,
       )}
-      style={{ touchAction: draggable ? "none" : undefined }}
+      style={{
+        touchAction: draggable ? "none" : undefined,
+        willChange: "transform",
+        backfaceVisibility: "hidden",
+      }}
       {...props}
     >
       <div

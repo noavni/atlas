@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/shell/AppShell";
 import { EmptyState, PageHeading } from "@/components/shell/PageHeading";
 import { Icon } from "@/components/primitives/Icon";
-import { GraphCanvas } from "@/components/graph/GraphCanvas";
+import { GraphCanvas } from "@/components/graph/GraphCanvasLazy";
 import { useMe } from "@/lib/queries/me";
 import { useGraph } from "@/lib/queries/graph";
 

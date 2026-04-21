@@ -18,8 +18,27 @@ import { AtlasLogo } from "@/components/brand/AtlasLogo";
 import { Icon } from "@/components/primitives/Icon";
 import { Badge } from "@/components/primitives/Badge";
 import { SPRING } from "@/lib/motion";
+import { useMe } from "@/lib/queries/me";
+import { usePages } from "@/lib/queries/pages";
+import { useProjects } from "@/lib/queries/projects";
 import { cn } from "@/lib/utils";
 import { useUI } from "@/lib/store/ui";
+
+// Deterministic dot colors picked from the token palette so each project
+// gets a distinct visual identifier.
+const DOT_PALETTE = [
+  "var(--persimmon-500)",
+  "var(--sage-500)",
+  "var(--indigo-500)",
+  "var(--amber-500)",
+  "var(--apricot-500)",
+];
+
+function dotColorFor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return DOT_PALETTE[hash % DOT_PALETTE.length]!;
+}
 
 interface NavEntry {
   id: string;
@@ -36,14 +55,6 @@ const primaryNav: NavEntry[] = [
   { id: "graph", href: "/graph", icon: Network, label: "Graph" },
 ];
 
-const sampleProjects = [
-  { id: "home", name: "Home renovation", color: "var(--persimmon-500)" },
-  { id: "lisbon", name: "Trip to Lisbon", color: "var(--sage-500)" },
-  { id: "reading", name: "Reading list 2026", color: "var(--indigo-500)" },
-  { id: "garden", name: "Garden", color: "var(--amber-500)" },
-];
-
-const samplePinned = ["On quiet tools", "Paint palette", "Weekly review", "Books to buy"];
 
 function NavItem({
   href,
@@ -61,6 +72,7 @@ function NavItem({
   return (
     <Link
       href={href}
+      prefetch
       className={cn(
         "flex w-full items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-start",
         "font-ui text-[13.5px] font-medium transition-colors duration-150",
@@ -143,6 +155,12 @@ function Section({
 
 export function Sidebar() {
   const pathname = usePathname();
+  const me = useMe();
+  const workspaceId = me.data?.workspaces[0]?.id;
+  const projects = useProjects(workspaceId);
+  const pages = usePages(workspaceId);
+  const pinnedPages = pages.data?.slice(0, 5) ?? [];
+  const visibleProjects = projects.data ?? [];
   return (
     <aside
       className={cn(
@@ -174,15 +192,19 @@ export function Sidebar() {
       </nav>
 
       <Section title="Projects" onAdd={() => {}}>
-        {sampleProjects.map((p) => (
+        {visibleProjects.length === 0 && !projects.isLoading && (
+          <div className="px-2.5 py-1.5 text-[12px] text-fg-3">No projects yet.</div>
+        )}
+        {visibleProjects.map((p) => (
           <Link
             key={p.id}
             href={`/board/${p.id}`}
+            prefetch
             className="flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
           >
             <span
               className="h-3 w-3 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/5"
-              style={{ background: p.color }}
+              style={{ background: dotColorFor(p.id) }}
               aria-hidden="true"
             />
             <span className="truncate">{p.name}</span>
@@ -190,18 +212,21 @@ export function Sidebar() {
         ))}
       </Section>
 
-      <Section title="Pinned notes">
-        {samplePinned.map((n) => (
-          <Link
-            key={n}
-            href={`/notes/${encodeURIComponent(n)}`}
-            className="flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
-          >
-            <Icon icon={Folder} size={14} />
-            <span className="truncate">{n}</span>
-          </Link>
-        ))}
-      </Section>
+      {pinnedPages.length > 0 && (
+        <Section title="Pinned notes">
+          {pinnedPages.map((n) => (
+            <Link
+              key={n.id}
+              href={`/notes/${encodeURIComponent(n.title)}`}
+              prefetch
+              className="flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
+            >
+              <Icon icon={Folder} size={14} />
+              <span className="truncate">{n.title}</span>
+            </Link>
+          ))}
+        </Section>
+      )}
 
       <div className="mt-auto border-t border-border-subtle pt-2">
         <NavItem
