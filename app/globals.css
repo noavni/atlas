@@ -325,6 +325,37 @@ body {
   pointer-events: none;
 }
 
+/* ============================================================================
+   Auto direction for user-entered content.
+   `unicode-bidi: plaintext` tells the browser to detect direction from the
+   first strong character in each paragraph. Combined with `dir="auto"` on
+   editable / content elements, Hebrew paragraphs flow RTL, English flow
+   LTR, and mixed content renders each run correctly.
+   ============================================================================ */
+[dir="auto"],
+.prose-atlas p,
+.prose-atlas h1,
+.prose-atlas h2,
+.prose-atlas h3,
+.prose-atlas li,
+.prose-atlas blockquote,
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable="true"] * {
+  unicode-bidi: plaintext;
+}
+
+/* Text that may carry user content (names, company, notes…) should also
+ * direction-detect per-node so a Hebrew name in an LTR app flows correctly
+ * inside a table row, card header, inbox body, etc. */
+.truncate,
+.line-clamp-1,
+.line-clamp-2,
+.line-clamp-3 {
+  unicode-bidi: plaintext;
+}
+
 /* Lead @-mention pill */
 .atlas-mention,
 .prose-atlas span[data-type="mention"],

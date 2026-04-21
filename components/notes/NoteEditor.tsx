@@ -1,7 +1,6 @@
 "use client";
 
-import { BubbleMenu, EditorContent, FloatingMenu, useEditor } from "@tiptap/react";
-import type { Editor } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
 import CharacterCount from "@tiptap/extension-character-count";
 import Color from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
@@ -15,34 +14,14 @@ import TextAlign from "@tiptap/extension-text-align";
 import TextStyle from "@tiptap/extension-text-style";
 import Typography from "@tiptap/extension-typography";
 import Underline from "@tiptap/extension-underline";
-import {
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
-  Bold,
-  Code2,
-  Heading1,
-  Heading2,
-  Highlighter,
-  Italic,
-  Link as LinkIcon,
-  List,
-  ListOrdered,
-  ListTodo,
-  Palette,
-  Quote,
-  Strikethrough,
-  Underline as UnderlineIcon,
-} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { buildMentionSuggestion } from "./mentionSuggestion";
-import { Icon } from "@/components/primitives/Icon";
+import { useActiveEditor } from "@/lib/store/activeEditor";
 import { useLeads } from "@/lib/queries/leads";
 import { useMe } from "@/lib/queries/me";
 import { useUpdatePage, type PageDoc } from "@/lib/queries/pages";
 import type { Lead } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export interface NoteEditorProps {
   page: PageDoc;
@@ -53,6 +32,7 @@ export function NoteEditor({ page }: NoteEditorProps) {
   const versionRef = useRef(page.version);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+  const setActiveEditor = useActiveEditor((s) => s.setEditor);
 
   const me = useMe();
   const workspaceId = me.data?.workspaces[0]?.id;
@@ -79,7 +59,7 @@ export function NoteEditor({ page }: NoteEditorProps) {
         heading: { levels: [1, 2, 3] },
       }),
       Placeholder.configure({
-        placeholder: "Start writing — / for commands, @ to link a lead",
+        placeholder: "Start writing — @ to link a lead",
         emptyEditorClass: "is-editor-empty",
       }),
       Link.configure({
@@ -103,7 +83,10 @@ export function NoteEditor({ page }: NoteEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "prose-atlas focus:outline-none font-serif text-[18px] leading-[1.65] text-fg-1 min-h-[50vh]",
+          "prose-atlas focus:outline-none font-serif text-[18px] leading-[1.7] text-fg-1 min-h-[65vh]",
+        // Auto direction per paragraph — Hebrew / Arabic switch to RTL
+        // automatically, mixed content renders correctly.
+        dir: "auto",
       },
       handleClickOn(_view, _pos, node) {
         if (node.type.name === "mention" && node.attrs.id) {
@@ -133,6 +116,14 @@ export function NoteEditor({ page }: NoteEditorProps) {
     },
   });
 
+  // Register editor globally so the right-side NoteToolbar can drive it.
+  useEffect(() => {
+    setActiveEditor(editor);
+    return () => {
+      setActiveEditor(null);
+    };
+  }, [editor, setActiveEditor]);
+
   useEffect(() => {
     versionRef.current = page.version;
   }, [page.version]);
@@ -143,306 +134,20 @@ export function NoteEditor({ page }: NoteEditorProps) {
     };
   }, []);
 
-  const promptLink = useCallback(() => {
-    if (!editor) return;
-    const prev = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("Link URL", prev ?? "https://");
-    if (url === null) return;
-    if (url === "") {
-      editor.chain().focus().unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  }, [editor]);
-
   if (!editor) return null;
+
+  const words = editor.storage.characterCount?.words?.() ?? 0;
+  const chars = editor.storage.characterCount?.characters?.() ?? 0;
 
   return (
     <div className="flex flex-col gap-4">
       <EditorContent editor={editor} />
-
-      <BubbleMenu
-        editor={editor}
-        tippyOptions={{
-          duration: 120,
-          placement: "top",
-          animation: "shift-away-subtle",
-        }}
-        shouldShow={({ editor, from, to }) => from !== to && !editor.isActive("mention")}
-        className="flex items-center gap-0.5 rounded-lg border border-border-subtle bg-surface-raised p-1 shadow-3"
-      >
-        <BubbleBtn
-          label="Bold (⌘B)"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive("bold")}
-          icon={Bold}
-        />
-        <BubbleBtn
-          label="Italic (⌘I)"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive("italic")}
-          icon={Italic}
-        />
-        <BubbleBtn
-          label="Underline (⌘U)"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          active={editor.isActive("underline")}
-          icon={UnderlineIcon}
-        />
-        <BubbleBtn
-          label="Strike"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive("strike")}
-          icon={Strikethrough}
-        />
-        <BubbleBtn
-          label="Code"
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          active={editor.isActive("code")}
-          icon={Code2}
-        />
-        <div className="mx-0.5 h-5 w-px bg-border-subtle" />
-        <ColorPopover editor={editor} />
-        <HighlightPopover editor={editor} />
-        <div className="mx-0.5 h-5 w-px bg-border-subtle" />
-        <BubbleBtn
-          label="Align left"
-          onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          active={editor.isActive({ textAlign: "left" })}
-          icon={AlignLeft}
-        />
-        <BubbleBtn
-          label="Align center"
-          onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          active={editor.isActive({ textAlign: "center" })}
-          icon={AlignCenter}
-        />
-        <BubbleBtn
-          label="Align right"
-          onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          active={editor.isActive({ textAlign: "right" })}
-          icon={AlignRight}
-        />
-        <div className="mx-0.5 h-5 w-px bg-border-subtle" />
-        <BubbleBtn
-          label="Link"
-          onClick={promptLink}
-          active={editor.isActive("link")}
-          icon={LinkIcon}
-        />
-      </BubbleMenu>
-
-      <FloatingMenu
-        editor={editor}
-        tippyOptions={{ duration: 120, placement: "left-start", offset: [0, 0] }}
-        className="flex items-center gap-0.5 rounded-lg border border-border-subtle bg-surface-raised p-1 shadow-3"
-      >
-        <FloatBtn
-          label="H1"
-          icon={Heading1}
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 1 }).run()
-          }
-        />
-        <FloatBtn
-          label="H2"
-          icon={Heading2}
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-        />
-        <FloatBtn
-          label="List"
-          icon={List}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        />
-        <FloatBtn
-          label="1. List"
-          icon={ListOrdered}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        />
-        <FloatBtn
-          label="Tasks"
-          icon={ListTodo}
-          onClick={() => editor.chain().focus().toggleTaskList().run()}
-        />
-        <FloatBtn
-          label="Quote"
-          icon={Quote}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        />
-        <FloatBtn
-          label="Code block"
-          icon={Code2}
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        />
-      </FloatingMenu>
-
-      <EditorStatus editor={editor} />
-    </div>
-  );
-}
-
-function BubbleBtn({
-  label,
-  icon,
-  onClick,
-  active,
-}: {
-  label: string;
-  icon: typeof Bold;
-  onClick: () => void;
-  active?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      onClick={onClick}
-      className={cn(
-        "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
-        active ? "bg-accent-tint text-accent" : "text-fg-2 hover:bg-surface-hover hover:text-fg-1",
-      )}
-    >
-      <Icon icon={icon} size={13} />
-    </button>
-  );
-}
-
-function FloatBtn({
-  label,
-  icon,
-  onClick,
-}: {
-  label: string;
-  icon: typeof Bold;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      onClick={onClick}
-      className="flex h-7 w-7 items-center justify-center rounded-md text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
-    >
-      <Icon icon={icon} size={13} />
-    </button>
-  );
-}
-
-const TEXT_COLORS: { key: string; css: string; label: string }[] = [
-  { key: "default", css: "", label: "Default" },
-  { key: "indigo", css: "var(--indigo-500)", label: "Indigo" },
-  { key: "sage", css: "var(--sage-500)", label: "Sage" },
-  { key: "apricot", css: "var(--apricot-500)", label: "Apricot" },
-  { key: "amber", css: "var(--amber-500)", label: "Amber" },
-  { key: "persimmon", css: "var(--persimmon-500)", label: "Persimmon" },
-  { key: "fg3", css: "var(--fg-3)", label: "Muted" },
-];
-
-const HIGHLIGHT_COLORS: { key: string; css: string; label: string }[] = [
-  { key: "none", css: "", label: "None" },
-  { key: "yellow", css: "color-mix(in oklch, var(--amber-500) 30%, transparent)", label: "Yellow" },
-  { key: "green", css: "color-mix(in oklch, var(--sage-500) 30%, transparent)", label: "Green" },
-  { key: "blue", css: "color-mix(in oklch, var(--indigo-500) 22%, transparent)", label: "Blue" },
-  { key: "pink", css: "color-mix(in oklch, var(--persimmon-500) 25%, transparent)", label: "Pink" },
-  { key: "orange", css: "color-mix(in oklch, var(--apricot-500) 30%, transparent)", label: "Orange" },
-];
-
-function ColorPopover({ editor }: { editor: Editor }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <BubbleBtn
-        label="Text color"
-        onClick={() => setOpen((v) => !v)}
-        active={open}
-        icon={Palette}
-      />
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onMouseDown={() => setOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1.5 rounded-lg border border-border-subtle bg-surface-raised p-2 shadow-3">
-            {TEXT_COLORS.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                title={c.label}
-                onClick={() => {
-                  if (c.key === "default") editor.chain().focus().unsetColor().run();
-                  else editor.chain().focus().setColor(c.css).run();
-                  setOpen(false);
-                }}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-border-subtle transition-transform hover:scale-110"
-                style={{
-                  background: c.key === "default" ? "var(--surface-1)" : c.css,
-                  color: c.key === "default" ? "var(--fg-1)" : "#fff",
-                }}
-              >
-                {c.key === "default" && "A"}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function HighlightPopover({ editor }: { editor: Editor }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <BubbleBtn
-        label="Highlight"
-        onClick={() => setOpen((v) => !v)}
-        active={editor.isActive("highlight")}
-        icon={Highlighter}
-      />
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onMouseDown={() => setOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1.5 rounded-lg border border-border-subtle bg-surface-raised p-2 shadow-3">
-            {HIGHLIGHT_COLORS.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                title={c.label}
-                onClick={() => {
-                  if (c.key === "none") editor.chain().focus().unsetHighlight().run();
-                  else editor.chain().focus().setHighlight({ color: c.css }).run();
-                  setOpen(false);
-                }}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-border-subtle transition-transform hover:scale-110"
-                style={{
-                  background: c.key === "none" ? "var(--surface-1)" : c.css,
-                }}
-              >
-                {c.key === "none" && <span className="text-[10px] text-fg-3">—</span>}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function EditorStatus({ editor }: { editor: Editor }) {
-  const words = editor.storage.characterCount?.words?.() ?? 0;
-  const chars = editor.storage.characterCount?.characters?.() ?? 0;
-  return (
-    <div className="flex items-center justify-between text-[11px] text-fg-4">
-      <span>{words} words · {chars} chars</span>
-      <span className="opacity-70">Saved automatically</span>
+      <div className="flex items-center justify-between text-[11px] text-fg-4">
+        <span>
+          {words} words · {chars} chars
+        </span>
+        <span className="opacity-70">Saved automatically</span>
+      </div>
     </div>
   );
 }

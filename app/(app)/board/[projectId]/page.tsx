@@ -3,6 +3,7 @@
 import { use } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { Board } from "@/components/board/Board";
+import { CardEditorModal } from "@/components/board/CardEditorModal";
 import { useMe } from "@/lib/queries/me";
 import { useProjects } from "@/lib/queries/projects";
 import { useProjectColors } from "@/lib/store/projectColors";
@@ -61,6 +62,7 @@ export default function BoardPage({ params }: Params) {
           <Board projectId={projectId} />
         </div>
       </div>
+      <CardEditorModal projectId={projectId} />
     </AppShell>
   );
 }

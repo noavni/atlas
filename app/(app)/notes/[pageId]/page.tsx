@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/shell/AppShell";
 import { BacklinksPanel } from "@/components/notes/BacklinksPanel";
 import { NoteEditor } from "@/components/notes/NoteEditorLazy";
+import { NoteToolbar } from "@/components/notes/NoteToolbar";
 import { Icon } from "@/components/primitives/Icon";
 import { useMe } from "@/lib/queries/me";
 import { useCreatePage, usePage, usePages } from "@/lib/queries/pages";
@@ -46,7 +47,7 @@ export default function NotePage({ params }: Params) {
 
   return (
     <AppShell crumbs={["Atlas", "Notes", title]} fullHeight>
-      <div className="grid h-full min-h-0 grid-cols-[280px_1fr_260px]">
+      <div className="grid h-full min-h-0 grid-cols-[260px_1fr_280px]">
         <aside className="atlas-board-scroll flex h-full min-h-0 flex-col overflow-y-auto border-e border-border-subtle bg-surface-app">
           <div className="sticky top-0 z-10 flex items-center justify-between gap-2 bg-surface-app/95 px-4 py-3 backdrop-blur">
             <div className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-fg-3">
@@ -90,15 +91,18 @@ export default function NotePage({ params }: Params) {
         </aside>
 
         <article className="atlas-board-scroll flex h-full min-h-0 flex-col overflow-y-auto">
-          <div className="mx-auto w-full max-w-[680px] px-10 py-12">
-            <h1 className="mb-2 font-display text-[40px] font-semibold leading-[1.1] tracking-[-0.022em] text-fg-1">
+          <div className="mx-auto w-full max-w-[760px] px-10 py-12">
+            <h1
+              dir="auto"
+              className="mb-2 font-display text-[40px] font-semibold leading-[1.1] tracking-[-0.022em] text-fg-1"
+            >
               {title}
             </h1>
             <div className="mb-7 flex items-center gap-2 text-[12px] text-fg-3">
               <span>Edited {page.data ? timeAgo(page.data.updated_at) : ""}</span>
             </div>
             {page.isLoading ? (
-              <div className="min-h-[50vh] animate-pulse rounded-md bg-surface-2/40" />
+              <div className="min-h-[65vh] animate-pulse rounded-md bg-surface-2/40" />
             ) : page.data ? (
               <NoteEditor page={page.data} />
             ) : (
@@ -110,11 +114,12 @@ export default function NotePage({ params }: Params) {
           </div>
         </article>
 
-        <aside className="atlas-board-scroll flex h-full min-h-0 flex-col overflow-y-auto border-s border-border-subtle bg-surface-app px-5 py-6">
-          {page.data ? (
-            <BacklinksPanel pageId={page.data.id} />
-          ) : (
-            <div className="text-[12px] text-fg-3">Backlinks will appear here.</div>
+        <aside className="atlas-board-scroll flex h-full min-h-0 flex-col overflow-y-auto border-s border-border-subtle bg-surface-app">
+          <NoteToolbar />
+          {page.data && (
+            <div className="mt-auto border-t border-border-subtle px-5 py-5">
+              <BacklinksPanel pageId={page.data.id} />
+            </div>
           )}
         </aside>
       </div>

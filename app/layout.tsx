@@ -72,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   ].join(" ");
 
   return (
-    <html lang="en" dir="ltr" data-theme="light" suppressHydrationWarning className={fontClasses}>
+    <html lang="en" dir="auto" data-theme="light" suppressHydrationWarning className={fontClasses}>
       <head>
         <ThemeBoot />
       </head>
