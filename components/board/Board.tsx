@@ -1,21 +1,8 @@
 "use client";
 
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
-  closestCorners,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragOverEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { AnimatePresence, LayoutGroup, type PanInfo } from "framer-motion";
 import { Plus } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
-import { Card } from "./Card";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Column } from "./Column";
 import { Icon } from "@/components/primitives/Icon";
 import {
@@ -29,15 +16,20 @@ import { useCardEditor } from "@/lib/store/cardEditor";
 import { useCreateCard, useMoveCard } from "@/lib/queries/cards";
 import { useBoardRealtime } from "@/lib/supabase/realtime";
 import type { Card as CardType } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export interface BoardProps {
   projectId: string;
 }
 
 /**
- * Kanban board. Drag/drop powered by @dnd-kit — DragOverlay portals the
- * drag visual to <body>, so the dragged card is never clipped by the
- * Board's horizontal scroll container or any column's overflow.
+ * Kanban board with Framer Motion drag.
+ *
+ * Clipping fix: the board root and each column's scroll wrapper switch to
+ * `overflow: visible` while a card is being dragged. This lets the dragged
+ * card float over neighbouring columns (via z-index) without being cut off
+ * by the horizontal scroll container or the column's vertical scroll.
+ * When drag ends, overflow snaps back so scrolling works normally.
  */
 export function Board({ projectId }: BoardProps) {
   const boards = useBoards(projectId);
@@ -50,7 +42,9 @@ export function Board({ projectId }: BoardProps) {
   const moveCard = useMoveCard();
   const openCardEditor = useCardEditor((s) => s.open);
 
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [hoverColumn, setHoverColumn] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
 
   useBoardRealtime(firstBoardId);
 
@@ -71,14 +65,54 @@ export function Board({ projectId }: BoardProps) {
     return out;
   }, [columns.data, cards.data]);
 
-  const activeCard = useMemo(
-    () => (cards.data ?? []).find((c) => c.id === activeId) ?? null,
-    [cards.data, activeId],
+  const columnAtPoint = useCallback((x: number, y: number): string | null => {
+    const root = boardRef.current;
+    if (!root) return null;
+    const cols = root.querySelectorAll<HTMLElement>("[data-column-id]");
+    for (const el of cols) {
+      const r = el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+        return el.getAttribute("data-column-id");
+      }
+    }
+    return null;
+  }, []);
+
+  const onCardDragStart = useCallback((cardId: string) => {
+    setDraggingId(cardId);
+    setHoverColumn(null);
+  }, []);
+
+  const onCardDrag = useCallback(
+    (_cardId: string, info: PanInfo) => {
+      const hit = columnAtPoint(info.point.x, info.point.y);
+      setHoverColumn((prev) => (prev === hit ? prev : hit));
+    },
+    [columnAtPoint],
   );
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  const onCardDragEnd = useCallback(
+    (cardId: string, info: PanInfo) => {
+      setDraggingId(null);
+      setHoverColumn(null);
+      if (!firstBoardId) return;
+      const target = columnAtPoint(info.point.x, info.point.y);
+      if (!target) return;
+      const card = (cards.data ?? []).find((c) => c.id === cardId);
+      if (!card) return;
+      if (card.column_id === target) return;
+      const dest = byColumn.get(target) ?? [];
+      const tail = dest.at(-1);
+      moveCard.mutate({
+        boardId: firstBoardId,
+        cardId,
+        columnId: target,
+        before: tail?.rank ?? null,
+        after: null,
+        version: card.version,
+      });
+    },
+    [firstBoardId, byColumn, cards.data, moveCard, columnAtPoint],
   );
 
   const DEFAULT_COLS: { name: string; state: string }[] = [
@@ -110,81 +144,6 @@ export function Board({ projectId }: BoardProps) {
       boardId = board.id;
     }
     await createColumn.mutateAsync({ boardId, name });
-  }
-
-  const findContainer = useCallback(
-    (id: string): string | null => {
-      if (id.startsWith("col:")) return id.slice(4);
-      // Look up which column the card currently lives in (from cards list)
-      const c = (cards.data ?? []).find((x) => x.id === id);
-      return c?.column_id ?? null;
-    },
-    [cards.data],
-  );
-
-  function onDragStart(e: DragStartEvent) {
-    setActiveId(e.active.id as string);
-  }
-
-  function onDragOver(_e: DragOverEvent) {
-    // Cross-column move happens on drag-end; we don't speculatively mutate
-    // here because the optimistic moveCard mutation would fire repeatedly.
-  }
-
-  function onDragEnd(e: DragEndEvent) {
-    setActiveId(null);
-    const { active, over } = e;
-    if (!over || !firstBoardId) return;
-    const cardId = active.id as string;
-    const sourceColumnId = findContainer(cardId);
-    if (!sourceColumnId) return;
-
-    const overId = over.id as string;
-    let targetColumnId: string | null = null;
-    let overCardId: string | null = null;
-    if (overId.startsWith("col:")) {
-      targetColumnId = overId.slice(4);
-    } else {
-      targetColumnId = findContainer(overId);
-      overCardId = overId;
-    }
-    if (!targetColumnId) return;
-
-    const destCards = byColumn.get(targetColumnId) ?? [];
-    let before: string | null = null;
-    let after: string | null = null;
-    if (!overCardId || sourceColumnId !== targetColumnId) {
-      // Dropped on column whitespace or moving to a new column — append.
-      const tail = destCards.at(-1);
-      before = tail?.rank ?? null;
-    } else {
-      const idx = destCards.findIndex((c) => c.id === overCardId);
-      if (idx === -1) {
-        const tail = destCards.at(-1);
-        before = tail?.rank ?? null;
-      } else {
-        const prev = destCards[idx - 1];
-        const curr = destCards[idx];
-        before = prev?.rank ?? null;
-        after = curr?.rank ?? null;
-        // When moving within the same column, don't sandwich the card
-        // against itself.
-        if (curr?.id === cardId) return;
-      }
-    }
-
-    const card = (cards.data ?? []).find((c) => c.id === cardId);
-    if (!card) return;
-    if (sourceColumnId === targetColumnId && before === null && after === null) return;
-
-    moveCard.mutate({
-      boardId: firstBoardId,
-      cardId,
-      columnId: targetColumnId,
-      before,
-      after,
-      version: card.version,
-    });
   }
 
   if (boards.isLoading) {
@@ -225,32 +184,42 @@ export function Board({ projectId }: BoardProps) {
     );
   }
 
+  const isDragging = !!draggingId;
+
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-      onDragCancel={() => setActiveId(null)}
+    <div
+      ref={boardRef}
+      className={cn(
+        "flex h-full min-h-0 gap-4 pb-4",
+        isDragging
+          ? "overflow-visible"
+          : "atlas-board-scroll overflow-x-auto overflow-y-hidden",
+      )}
     >
-      <div className="atlas-board-scroll flex h-full min-h-0 gap-4 overflow-x-auto overflow-y-hidden pb-4">
-        {(columns.data ?? []).map((col) => (
-          <Column
-            key={col.id}
-            column={col}
-            cards={byColumn.get(col.id) ?? []}
-            activeCardId={activeId}
-            onAddCard={(columnId) =>
-              createCard.mutate({
-                boardId: firstBoardId,
-                columnId,
-                title: "New card",
-              })
-            }
-            onEditCard={(card) => openCardEditor(card.id)}
-          />
-        ))}
+      <LayoutGroup>
+        <AnimatePresence initial={false}>
+          {(columns.data ?? []).map((col) => (
+            <Column
+              key={col.id}
+              column={col}
+              cards={byColumn.get(col.id) ?? []}
+              boardId={firstBoardId}
+              isDragging={isDragging}
+              isDropTarget={hoverColumn === col.id}
+              onAddCard={(columnId) =>
+                createCard.mutate({
+                  boardId: firstBoardId,
+                  columnId,
+                  title: "New card",
+                })
+              }
+              onEditCard={(card) => openCardEditor(card.id)}
+              onCardDragStart={onCardDragStart}
+              onCardDrag={onCardDrag}
+              onCardDragEnd={onCardDragEnd}
+            />
+          ))}
+        </AnimatePresence>
         <button
           type="button"
           onClick={addColumn}
@@ -258,11 +227,8 @@ export function Board({ projectId }: BoardProps) {
         >
           <Icon icon={Plus} size={13} /> Add column
         </button>
-      </div>
-      <DragOverlay dropAnimation={null}>
-        {activeCard ? <Card card={activeCard} overlay className="w-[280px]" /> : null}
-      </DragOverlay>
-    </DndContext>
+      </LayoutGroup>
+    </div>
   );
 }
 

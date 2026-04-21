@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/shell/AppShell";
 import { BacklinksPanel } from "@/components/notes/BacklinksPanel";
@@ -10,7 +10,12 @@ import { NoteEditor } from "@/components/notes/NoteEditorLazy";
 import { NoteToolbar } from "@/components/notes/NoteToolbar";
 import { Icon } from "@/components/primitives/Icon";
 import { useMe } from "@/lib/queries/me";
-import { useCreatePage, usePage, usePages } from "@/lib/queries/pages";
+import {
+  useCreatePage,
+  usePage,
+  usePages,
+  useUpdatePage,
+} from "@/lib/queries/pages";
 import { cn } from "@/lib/utils";
 
 interface Params {
@@ -28,6 +33,25 @@ export default function NotePage({ params }: Params) {
   const match = pages.data?.find((p) => p.title === title);
   const page = usePage(match?.id);
   const createPage = useCreatePage();
+  const updatePage = useUpdatePage();
+
+  const [titleDraft, setTitleDraft] = useState(title);
+  useEffect(() => {
+    setTitleDraft(title);
+  }, [title]);
+
+  function commitTitle() {
+    const next = titleDraft.trim();
+    if (!next || !page.data || next === page.data.title) return;
+    updatePage.mutate(
+      { pageId: page.data.id, version: page.data.version, title: next },
+      {
+        onSuccess: () => {
+          router.replace(`/notes/${encodeURIComponent(next)}`);
+        },
+      },
+    );
+  }
 
   function onNew() {
     if (!workspaceId) return;
@@ -92,12 +116,25 @@ export default function NotePage({ params }: Params) {
 
         <article className="atlas-board-scroll flex h-full min-h-0 flex-col overflow-y-auto">
           <div className="mx-auto w-full max-w-[760px] px-10 py-12">
-            <h1
+            <input
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onBlur={commitTitle}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  (e.target as HTMLInputElement).blur();
+                }
+                if (e.key === "Escape") {
+                  setTitleDraft(title);
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+              placeholder="Untitled"
               dir="auto"
-              className="mb-2 font-display text-[40px] font-semibold leading-[1.1] tracking-[-0.022em] text-fg-1"
-            >
-              {title}
-            </h1>
+              disabled={!page.data}
+              className="mb-2 w-full bg-transparent font-display text-[40px] font-semibold leading-[1.1] tracking-[-0.022em] text-fg-1 outline-none placeholder:text-fg-4"
+            />
             <div className="mb-7 flex items-center gap-2 text-[12px] text-fg-3">
               <span>Edited {page.data ? timeAgo(page.data.updated_at) : ""}</span>
             </div>

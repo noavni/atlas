@@ -155,29 +155,31 @@ export default function LeadsHubPage() {
         {/* Hero: lowercase eyebrow + H1 left; Export/New lead right, aligned
          * to the stat-row baseline so the CTA cluster hangs next to the
          * numbers, matching the design. */}
-        <div className="border-b border-border-subtle px-10 pb-6 pt-8">
+        <div className="border-b border-border-subtle px-10 pb-5 pt-6">
           <div className="mb-1.5 text-[11.5px] font-medium lowercase text-fg-3">
             relationships · pipeline
           </div>
-          <h1 className="m-0 font-display text-[38px] font-semibold leading-[1.05] tracking-[-0.022em] text-fg-1">
+          <h1 className="m-0 font-display text-[30px] font-semibold leading-[1.05] tracking-[-0.022em] text-fg-1">
             Leads
           </h1>
 
-          <div className="mt-6 flex items-end justify-between gap-6">
+          <div className="mt-4 flex items-end justify-between gap-6">
             <div className="flex-1">
               <LeadStats leads={allLeads} />
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Button
+                size="sm"
                 variant="secondary"
-                leadingIcon={<Icon icon={Upload} size={13} />}
+                leadingIcon={<Icon icon={Upload} size={12} />}
                 onClick={() => setImportOpen(true)}
               >
                 Import
               </Button>
               <Button
+                size="sm"
                 variant="primary"
-                leadingIcon={<Icon icon={Plus} size={13} />}
+                leadingIcon={<Icon icon={Plus} size={12} />}
                 onClick={() => setNewLeadOpen(true)}
               >
                 New lead
@@ -187,15 +189,15 @@ export default function LeadsHubPage() {
         </div>
 
         {/* Toolbar: tabs (left) · search pill (centre) · Stage / Sort (right) */}
-        <div className="flex items-center gap-3 border-b border-border-subtle bg-surface-app px-10 py-3">
-          <div className="inline-flex items-center gap-0.5 rounded-[10px] border border-border-subtle bg-surface-2 p-0.5">
+        <div className="flex items-center gap-2.5 border-b border-border-subtle bg-surface-app px-10 py-2.5">
+          <div className="inline-flex h-8 items-center gap-0.5 rounded-[8px] border border-border-subtle bg-surface-2 p-0.5">
             {VIEWS.map((v) => (
               <button
                 key={v.id}
                 type="button"
                 onClick={() => setView(v.id)}
                 className={cn(
-                  "rounded-[8px] px-3.5 py-1.5 text-[12.5px] font-medium transition-colors duration-150",
+                  "rounded-[6px] px-3 py-1 text-[12px] font-medium transition-colors duration-150",
                   view === v.id
                     ? "bg-surface-raised text-fg-1 shadow-1"
                     : "text-fg-2 hover:text-fg-1",
@@ -206,7 +208,7 @@ export default function LeadsHubPage() {
             ))}
           </div>
 
-          <div className="mx-auto flex h-9 min-w-[220px] max-w-[320px] flex-1 items-center gap-2 rounded-[8px] border border-border-subtle bg-surface-2 px-2.5">
+          <div className="mx-auto flex h-8 min-w-[220px] max-w-[320px] flex-1 items-center gap-2 rounded-[8px] border border-border-subtle bg-surface-2 px-2.5">
             <Icon icon={Search} size={13} className="text-fg-3" />
             <input
               value={query}
@@ -221,7 +223,7 @@ export default function LeadsHubPage() {
               type="button"
               onClick={() => setStageMenu((v) => !v)}
               className={cn(
-                "inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle px-3 text-[12.5px] font-medium text-fg-2 transition-colors",
+                "inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-border-subtle px-3 text-[12.5px] font-medium text-fg-2 transition-colors",
                 stageFilter.size
                   ? "bg-accent-tint text-accent"
                   : "bg-surface-raised hover:bg-surface-2",
@@ -277,7 +279,7 @@ export default function LeadsHubPage() {
             <button
               type="button"
               onClick={() => setSortMenu((v) => !v)}
-              className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle bg-surface-raised px-3 text-[12.5px] font-medium text-fg-2 transition-colors hover:bg-surface-2"
+              className="inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-border-subtle bg-surface-raised px-3 text-[12.5px] font-medium text-fg-2 transition-colors hover:bg-surface-2"
             >
               <Icon icon={SortAsc} size={13} /> Sort
               <span className="text-fg-3">· {SORT_LABEL[sortKey].split(" ")[0]}</span>

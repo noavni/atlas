@@ -70,3 +70,38 @@ export function useCreateColumn() {
     },
   });
 }
+
+export function useUpdateColumn() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      columnId,
+      name,
+    }: {
+      boardId: string;
+      columnId: string;
+      name: string;
+    }) => {
+      return apiFetch<BoardColumn>(`/v1/columns/${columnId}`, {
+        method: "PATCH",
+        idempotencyKey: `column.update:${columnId}:${Date.now()}`,
+        body: JSON.stringify({ name }),
+      });
+    },
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: ["columns", input.boardId] });
+      const prev = qc.getQueryData<BoardColumn[]>(["columns", input.boardId]) ?? [];
+      qc.setQueryData<BoardColumn[]>(
+        ["columns", input.boardId],
+        prev.map((c) => (c.id === input.columnId ? { ...c, name: input.name } : c)),
+      );
+      return { prev };
+    },
+    onError: (_e, input, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["columns", input.boardId], ctx.prev);
+    },
+    onSettled: (_d, _e, input) => {
+      qc.invalidateQueries({ queryKey: ["columns", input.boardId] });
+    },
+  });
+}

@@ -1,7 +1,11 @@
 "use client";
 
 import { Link as LinkIcon } from "lucide-react";
-import { motion, type HTMLMotionProps } from "framer-motion";
+import {
+  motion,
+  type HTMLMotionProps,
+  type PanInfo,
+} from "framer-motion";
 import { forwardRef } from "react";
 import { Avatar } from "@/components/primitives/Avatar";
 import { Icon } from "@/components/primitives/Icon";
@@ -9,16 +13,16 @@ import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Card as CardType, WorkflowState } from "@/lib/types";
 
-export interface CardProps extends Omit<HTMLMotionProps<"div">, "drag"> {
+export interface CardProps
+  extends Omit<HTMLMotionProps<"div">, "drag" | "onDragStart" | "onDrag" | "onDragEnd"> {
   card: CardType;
   linkCount?: number;
   assignees?: { name: string }[];
-  /** If true, the card is being dragged — apply translucent ghost style. */
-  ghost?: boolean;
-  /** If true, the card is the active DragOverlay clone — apply lift/tilt. */
-  overlay?: boolean;
-  /** If true, card is in edit-hover state (for the actual edit tap). */
   draggable?: boolean;
+  onCardDragStart?: () => void;
+  onCardDrag?: (info: PanInfo) => void;
+  onCardDragEnd?: (info: PanInfo) => void;
+  onCardClick?: () => void;
 }
 
 type TagTone = "indigo" | "apricot" | "sage" | "amber" | "persimmon" | "neutral";
@@ -73,25 +77,55 @@ function dueLabel(iso: string | null): string | null {
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
-  { card, ghost = false, overlay = false, linkCount = 0, assignees = [], className, ...props },
+  {
+    card,
+    draggable = true,
+    linkCount = 0,
+    assignees = [],
+    className,
+    onCardDragStart,
+    onCardDrag,
+    onCardDragEnd,
+    onCardClick,
+    ...props
+  },
   ref,
 ) {
   const tagTone = stateTone(card.workflow_state);
   return (
     <motion.div
       ref={ref}
-      whileHover={overlay ? undefined : { y: -1 }}
+      layout
+      layoutId={card.id}
+      drag={draggable}
+      dragMomentum={false}
+      dragElastic={0.12}
+      dragSnapToOrigin
+      onDragStart={() => onCardDragStart?.()}
+      onDrag={(_, info) => onCardDrag?.(info)}
+      onDragEnd={(_, info) => onCardDragEnd?.(info)}
+      onClick={() => onCardClick?.()}
+      whileDrag={{
+        scale: 1.035,
+        rotate: 1.2,
+        zIndex: 9999,
+        boxShadow: "0 24px 60px -10px rgba(0,0,0,0.35)",
+        cursor: "grabbing",
+      }}
+      whileHover={{ y: -1 }}
       transition={SPRING.gentle}
       data-card-id={card.id}
       dir="auto"
       className={cn(
-        "relative overflow-hidden rounded-md bg-surface-raised px-3.5 pt-[11px] pb-2.5 shadow-1 select-none",
-        overlay &&
-          "rotate-[1.2deg] scale-[1.035] shadow-[0_24px_60px_-10px_rgba(0,0,0,0.35)] ring-1 ring-accent/40",
-        ghost && "opacity-30",
-        !overlay && !ghost && "cursor-grab active:cursor-grabbing",
+        "group relative select-none overflow-hidden rounded-md bg-surface-raised px-3.5 pt-[11px] pb-2.5 shadow-1",
+        draggable ? "cursor-grab active:cursor-grabbing" : "",
         className,
       )}
+      style={{
+        touchAction: draggable ? "none" : undefined,
+        willChange: "transform",
+        backfaceVisibility: "hidden",
+      }}
       {...props}
     >
       <div

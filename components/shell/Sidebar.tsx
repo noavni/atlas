@@ -24,7 +24,8 @@ import { useInbox } from "@/lib/queries/inbox";
 import { useLeads } from "@/lib/queries/leads";
 import { useMe } from "@/lib/queries/me";
 import { usePages } from "@/lib/queries/pages";
-import { useProjects } from "@/lib/queries/projects";
+import { useProjects, useUpdateProject } from "@/lib/queries/projects";
+import type { Project } from "@/lib/types";
 import { useCreatePage } from "@/lib/queries/pages";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -239,19 +240,12 @@ export function Sidebar() {
           <div className="px-2.5 py-1.5 text-[12px] text-fg-3">No projects yet.</div>
         )}
         {visibleProjects.map((p) => (
-          <Link
+          <ProjectRow
             key={p.id}
-            href={`/board/${p.id}`}
-            prefetch
-            className="group flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
-          >
-            <span
-              className="h-3.5 w-3.5 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/10 transition-transform duration-200 group-hover:scale-110"
-              style={{ background: getProjectColor(p.id) ?? dotColorFor(p.id) }}
-              aria-hidden="true"
-            />
-            <span className="truncate">{p.name}</span>
-          </Link>
+            project={p}
+            workspaceId={workspaceId}
+            dotColor={getProjectColor(p.id) ?? dotColorFor(p.id)}
+          />
         ))}
       </Section>
 
@@ -280,5 +274,82 @@ export function Sidebar() {
         />
       </div>
     </aside>
+  );
+}
+
+function ProjectRow({
+  project,
+  workspaceId,
+  dotColor,
+}: {
+  project: Project;
+  workspaceId: string | undefined;
+  dotColor: string;
+}) {
+  const update = useUpdateProject();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(project.name);
+  const pathname = usePathname();
+  const active =
+    pathname === `/board/${project.id}` || pathname.startsWith(`/board/${project.id}/`);
+
+  function commit() {
+    const next = name.trim();
+    if (!next || !workspaceId || next === project.name) {
+      setName(project.name);
+      setEditing(false);
+      return;
+    }
+    update.mutate({ workspaceId, projectId: project.id, patch: { name: next } });
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-2.5 px-2.5 py-[5px] ps-6">
+        <span
+          className="h-3.5 w-3.5 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/10"
+          style={{ background: dotColor }}
+          aria-hidden="true"
+        />
+        <input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+            if (e.key === "Escape") {
+              setName(project.name);
+              setEditing(false);
+            }
+          }}
+          className="min-w-0 flex-1 rounded-sm border border-accent bg-surface-raised px-1.5 py-px text-[12.5px] text-fg-1 outline-none"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/board/${project.id}`}
+      prefetch
+      onDoubleClick={(e) => {
+        e.preventDefault();
+        setEditing(true);
+      }}
+      className={cn(
+        "group flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] transition-colors",
+        active ? "bg-accent-tint text-fg-1" : "text-fg-2 hover:bg-surface-hover hover:text-fg-1",
+      )}
+      title="Double-click to rename"
+    >
+      <span
+        className="h-3.5 w-3.5 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/10 transition-transform duration-200 group-hover:scale-110"
+        style={{ background: dotColor }}
+        aria-hidden="true"
+      />
+      <span className="truncate">{project.name}</span>
+    </Link>
   );
 }

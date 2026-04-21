@@ -20,11 +20,11 @@ function StatCard({ label, value, caption, captionTone = "muted" }: StatCardProp
         ? "text-[var(--apricot-600)]"
         : "text-fg-3";
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="font-display text-[36px] font-normal leading-[1] tracking-[-0.02em] text-fg-1">
+    <div className="flex flex-col gap-1">
+      <div className="font-display text-[26px] font-semibold leading-[1] tracking-[-0.018em] text-fg-1">
         {value}
       </div>
-      <div className="text-[11.5px] font-medium lowercase text-fg-3">{label}</div>
+      <div className="text-[11px] font-medium lowercase text-fg-3">{label}</div>
       {caption && <div className={cn("text-[11px] font-medium", captionColor)}>{caption}</div>}
     </div>
   );
@@ -61,7 +61,7 @@ export function LeadStats({ leads }: { leads: Lead[] }) {
   }, [leads]);
 
   return (
-    <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+    <div className="grid grid-cols-2 gap-5 md:grid-cols-4 md:gap-7">
       <StatCard
         label="Active"
         value={String(stats.active)}

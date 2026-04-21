@@ -17,6 +17,7 @@ import Underline from "@tiptap/extension-underline";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { buildMentionSuggestion } from "./mentionSuggestion";
+import { TextDirection } from "./textDirectionExtension";
 import { useActiveEditor } from "@/lib/store/activeEditor";
 import { useLeads } from "@/lib/queries/leads";
 import { useMe } from "@/lib/queries/me";
@@ -76,6 +77,7 @@ export function NoteEditor({ page }: NoteEditorProps) {
       CharacterCount.configure({ limit: null }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      TextDirection,
       mentionExtension,
     ],
     content: page.content as object,
@@ -83,7 +85,7 @@ export function NoteEditor({ page }: NoteEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "prose-atlas focus:outline-none font-serif text-[18px] leading-[1.7] text-fg-1 min-h-[65vh]",
+          "prose-atlas focus:outline-none font-serif text-[17px] leading-[1.55] text-fg-1 min-h-[65vh]",
         // Auto direction per paragraph — Hebrew / Arabic switch to RTL
         // automatically, mixed content renders correctly.
         dir: "auto",
