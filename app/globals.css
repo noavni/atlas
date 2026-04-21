@@ -50,6 +50,231 @@ body {
   border-radius: var(--radius-xs);
 }
 
+/* ============================================================================
+   Atlas sphere logomark — animated SVG orb
+   ============================================================================ */
+.atlas-sphere {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+.atlas-halo {
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    rgba(107, 120, 239, 0.35),
+    transparent 62%
+  );
+  filter: blur(8px);
+  animation: atlas-halo-pulse 4.2s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  pointer-events: none;
+}
+[data-theme="dark"] .atlas-halo {
+  background: radial-gradient(
+    circle at 38% 32%,
+    rgba(143, 157, 255, 0.55),
+    transparent 62%
+  );
+}
+@keyframes atlas-halo-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+.atlas-orb {
+  animation: atlas-orb-float 6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+  transform-origin: 50% 50%;
+}
+.atlas-glow {
+  animation: atlas-glow-shift 7s ease-in-out infinite;
+}
+.atlas-arc {
+  animation: atlas-arc-rotate 14s linear infinite;
+  transform-origin: 32px 32px;
+  opacity: 0.6;
+}
+.atlas-arc-b {
+  animation: atlas-arc-rotate 20s linear infinite reverse;
+  transform-origin: 32px 32px;
+  opacity: 0.4;
+}
+.atlas-hi {
+  animation: atlas-hi-drift 6s ease-in-out infinite;
+}
+@keyframes atlas-orb-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.015);
+  }
+}
+@keyframes atlas-glow-shift {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes atlas-arc-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes atlas-hi-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(1px, -1px);
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   QuickCapture waveform bars
+   ============================================================================ */
+.qc-wave-bar {
+  height: 4px;
+  animation: qc-wave 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: var(--qc-bar-delay, 0ms);
+}
+@keyframes qc-wave {
+  0%,
+  100% {
+    height: 4px;
+  }
+  30% {
+    height: 18px;
+  }
+  55% {
+    height: 26px;
+  }
+  80% {
+    height: 10px;
+  }
+}
+
+/* ============================================================================
+   Note editor typography (Tiptap output)
+   ============================================================================ */
+.prose-atlas h1 {
+  font-family: var(--font-display);
+  font-size: var(--read-h1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--fg-1);
+  margin: 0 0 16px;
+}
+.prose-atlas h2 {
+  font-family: var(--font-display);
+  font-size: var(--read-h2);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--fg-1);
+  margin: 28px 0 10px;
+}
+.prose-atlas h3 {
+  font-family: var(--font-display);
+  font-size: var(--read-h3);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--fg-1);
+  margin: 22px 0 8px;
+}
+.prose-atlas p {
+  font-family: var(--font-serif);
+  font-size: var(--read-body);
+  line-height: 1.65;
+  color: var(--fg-1);
+  margin: 0 0 14px;
+}
+.prose-atlas a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  background-image: linear-gradient(var(--accent-primary), var(--accent-primary));
+  background-size: 100% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--dur-fast) var(--ease-in-out);
+}
+.prose-atlas a:hover {
+  background-size: 100% 2px;
+}
+.prose-atlas blockquote {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-style: italic;
+  color: var(--fg-2);
+  border-inline-start: 2px solid var(--accent-primary);
+  padding-inline-start: 20px;
+  margin: 24px 0;
+}
+.prose-atlas ul,
+.prose-atlas ol {
+  font-family: var(--font-serif);
+  font-size: var(--read-body);
+  line-height: 1.55;
+  padding-inline-start: 24px;
+  margin: 0 0 14px;
+}
+.prose-atlas ul[data-type="taskList"] {
+  list-style: none;
+  padding-inline-start: 0;
+}
+.prose-atlas ul[data-type="taskList"] li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.prose-atlas ul[data-type="taskList"] li > label input[type="checkbox"] {
+  accent-color: var(--accent-primary);
+  width: 14px;
+  height: 14px;
+  transform: translateY(2px);
+}
+.prose-atlas code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.prose-atlas pre {
+  font-family: var(--font-mono);
+  background: var(--surface-2);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: 18px 0;
+}
+.prose-atlas pre code {
+  background: transparent;
+  padding: 0;
+}
+.prose-atlas .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--fg-4);
+  float: inline-start;
+  height: 0;
+  pointer-events: none;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

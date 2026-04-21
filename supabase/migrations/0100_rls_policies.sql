@@ -57,7 +57,7 @@ begin
   foreach tbl in array array[
     'projects', 'boards', 'columns', 'cards',
     'pages', 'blocks', 'links',
-    'attachments', 'tags', 'card_tags', 'page_tags',
+    'attachments', 'tags',
     'embeddings', 'audit_log'
   ]
   loop

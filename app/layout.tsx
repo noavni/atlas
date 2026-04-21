@@ -6,6 +6,7 @@ import {
   JetBrains_Mono,
   Source_Serif_4,
 } from "next/font/google";
+import { AtlasLogoDefs } from "@/components/brand/AtlasLogo";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" dir="ltr" data-theme="light" suppressHydrationWarning className={fontClasses}>
       <body>
+        <AtlasLogoDefs />
         <QueryProvider>
           <ThemeProvider>{children}</ThemeProvider>
         </QueryProvider>

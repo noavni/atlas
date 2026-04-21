@@ -1,11 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Mic, MicOff, Send } from "lucide-react";
+import { File as FileIcon, Globe, Image as ImageIcon, Mic } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/primitives/Icon";
 import { Button } from "@/components/primitives/Button";
+import { IconButton } from "@/components/primitives/IconButton";
 import { Kbd } from "@/components/primitives/Kbd";
+import { SPRING } from "@/lib/motion";
 import { useMe } from "@/lib/queries/me";
 import { useCapture } from "@/lib/queries/inbox";
 import { useUI } from "@/lib/store/ui";
@@ -31,8 +33,10 @@ export function QuickCapture() {
 
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ⌘N binding
   useEffect(() => {
@@ -70,12 +74,14 @@ export function QuickCapture() {
       mr.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
       mr.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
         setRecording(false);
+        setElapsed(0);
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         if (!workspaceId) return;
-        // Ship the capture as a voice placeholder; attachment upload + STT
-        // wiring comes online in Phase 3b/5. Until then the item is visible
-        // and enqueued; transcript stays null.
         const sizeKb = Math.round(blob.size / 1024);
         await capture.mutateAsync({
           workspaceId,
@@ -89,9 +95,17 @@ export function QuickCapture() {
       mr.start();
       recorderRef.current = mr;
       setRecording(true);
+      setElapsed(0);
+      timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
     } catch (err) {
       console.warn("mic denied", err);
     }
+  }
+
+  function fmtElapsed(s: number): string {
+    const m = Math.floor(s / 60);
+    const ss = (s % 60).toString().padStart(2, "0");
+    return `${m}:${ss}`;
   }
 
   return (
@@ -137,36 +151,64 @@ export function QuickCapture() {
                   void onSubmit();
                 }
               }}
-              placeholder={recording ? "Recording…" : "What's on your mind?"}
+              placeholder="Anything at all. It goes in the inbox."
               rows={4}
               className="w-full resize-none bg-transparent px-4 py-3 text-md text-fg-1 outline-none placeholder:text-fg-4"
             />
-            <div className="flex items-center gap-2 border-t border-border-subtle px-3 py-2">
-              <button
-                type="button"
+
+            <AnimatePresence initial={false}>
+              {recording && (
+                <motion.div
+                  key="wave"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={SPRING.gentle}
+                  className="relative flex items-center gap-0.5 overflow-hidden border-t border-border-subtle bg-surface-1/40 px-4 py-3"
+                >
+                  {Array.from({ length: 48 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="qc-wave-bar inline-block w-[3px] rounded-full bg-[var(--persimmon-500)]"
+                      style={
+                        {
+                          ["--qc-bar-delay" as const]: `${i * 60}ms`,
+                        } as React.CSSProperties
+                      }
+                    />
+                  ))}
+                  <span className="absolute end-3 font-mono text-[11px] text-fg-3">
+                    {fmtElapsed(elapsed)}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex items-center gap-1 border-t border-border-subtle px-3 py-2">
+              <IconButton
                 onClick={toggleRecord}
-                className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-sm px-2.5 text-sm font-medium transition-colors",
-                  recording
-                    ? "bg-danger-bg text-danger-fg"
-                    : "bg-transparent text-fg-2 hover:bg-surface-hover hover:text-fg-1",
-                )}
+                title={recording ? "Stop recording" : "Record voice"}
+                className={cn(recording && "text-[var(--persimmon-500)]")}
               >
-                <Icon icon={recording ? MicOff : Mic} size={14} />
-                <span>{recording ? "Stop" : "Voice"}</span>
-              </button>
-              <div className="ms-auto flex items-center gap-2 text-xs text-fg-3">
-                <Kbd>⌘</Kbd>
-                <Kbd>↵</Kbd>
-                <span>to save</span>
-              </div>
+                <Icon icon={Mic} size={18} />
+              </IconButton>
+              <IconButton title="Image (soon)" disabled>
+                <Icon icon={ImageIcon} size={18} />
+              </IconButton>
+              <IconButton title="File (soon)" disabled>
+                <Icon icon={FileIcon} size={18} />
+              </IconButton>
+              <IconButton title="URL (soon)" disabled>
+                <Icon icon={Globe} size={18} />
+              </IconButton>
+              <div className="ms-auto" />
               <Button
                 variant="primary"
-                leadingIcon={<Icon icon={Send} size={13} />}
                 onClick={onSubmit}
                 disabled={!text.trim() || capture.isPending}
+                trailingIcon={<Kbd inverse>↵</Kbd>}
               >
-                Capture
+                Save to inbox
               </Button>
             </div>
           </motion.div>

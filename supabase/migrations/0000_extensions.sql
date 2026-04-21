@@ -5,6 +5,10 @@
 create extension if not exists "pgcrypto";
 create extension if not exists "pg_trgm";
 create extension if not exists "vector";
-create extension if not exists "pgmq" with schema "extensions";
+
+-- pgmq requires its own schema
+create schema if not exists pgmq;
+create extension if not exists "pgmq" with schema "pgmq";
+
 create extension if not exists "pg_cron" with schema "extensions";
 create extension if not exists "pg_net" with schema "extensions";

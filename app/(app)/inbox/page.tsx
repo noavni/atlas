@@ -1,9 +1,8 @@
 "use client";
 
-import { Inbox, Plus } from "lucide-react";
+import { Inbox, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
-import { EmptyState, PageHeading } from "@/components/shell/PageHeading";
-import { Button } from "@/components/primitives/Button";
+import { EmptyState } from "@/components/shell/PageHeading";
 import { Icon } from "@/components/primitives/Icon";
 import { Kbd } from "@/components/primitives/Kbd";
 import { InboxList } from "@/components/inbox/InboxList";
@@ -17,28 +16,38 @@ export default function InboxPage() {
   const inbox = useInbox(workspaceId);
   const setQuickCaptureOpen = useUI((s) => s.setQuickCaptureOpen);
 
-  const isEmpty = !inbox.data || inbox.data.length === 0;
+  const count = inbox.data?.length ?? 0;
 
   return (
     <AppShell crumbs={["Atlas", "Inbox"]}>
       <div className="mx-auto max-w-[720px] px-7 pb-12 pt-7">
-        <PageHeading
-          eyebrow="Capture"
-          title="Inbox"
-          actions={
-            <Button
-              variant="primary"
-              leadingIcon={<Icon icon={Plus} size={14} />}
-              trailingIcon={<Kbd inverse>⌘N</Kbd>}
-              onClick={() => setQuickCaptureOpen(true)}
-            >
-              New
-            </Button>
-          }
-        />
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.06em] text-fg-3">
+              today · inbox
+            </div>
+            <h1 className="m-0 font-display text-3xl font-semibold tracking-[-0.018em] text-fg-1">
+              Brain dump
+            </h1>
+            <p className="mt-1.5 text-sm text-fg-3">
+              {count === 0
+                ? "Empty. Press ⌘N to drop something in."
+                : `${count} ${count === 1 ? "thing" : "things"} to organize. No hurry.`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setQuickCaptureOpen(true)}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border-subtle bg-surface-raised px-3 font-ui text-[12.5px] font-medium text-fg-1 shadow-1 transition-colors hover:bg-surface-2"
+          >
+            <Icon icon={Sparkles} size={14} />
+            <span>Quick capture</span>
+            <Kbd>⌘N</Kbd>
+          </button>
+        </div>
         {inbox.isLoading || me.isLoading ? (
           <div className="text-sm text-fg-3">Loading…</div>
-        ) : isEmpty ? (
+        ) : count === 0 ? (
           <EmptyState
             icon={<Icon icon={Inbox} size={28} />}
             title="No captures yet."

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
   Folder,
@@ -13,8 +14,10 @@ import {
   Plus,
   Settings as SettingsIcon,
 } from "lucide-react";
+import { AtlasLogo } from "@/components/brand/AtlasLogo";
 import { Icon } from "@/components/primitives/Icon";
 import { Badge } from "@/components/primitives/Badge";
+import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useUI } from "@/lib/store/ui";
 
@@ -120,7 +123,20 @@ function Section({
           </button>
         )}
       </div>
-      {open && <div className="mt-1 flex flex-col gap-px">{children}</div>}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={SPRING.gentle}
+            className="mt-1 flex flex-col gap-px overflow-hidden"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -136,9 +152,7 @@ export function Sidebar() {
     >
       <div className="px-1.5 pb-3 pt-1.5">
         <div className="flex items-center gap-2.5 rounded-[10px] p-1.5 transition-colors hover:bg-surface-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-sm bg-accent text-fg-on-accent text-sm font-semibold">
-            A
-          </div>
+          <AtlasLogo size={28} />
           <div className="min-w-0">
             <div className="truncate text-[13px] font-semibold text-fg-1">Atlas</div>
             <div className="mt-px truncate text-[11px] text-fg-3">Private workspace</div>
@@ -167,7 +181,7 @@ export function Sidebar() {
             className="flex items-center gap-2.5 rounded-sm px-2.5 py-[5px] ps-6 text-[12.5px] text-fg-2 transition-colors hover:bg-surface-hover hover:text-fg-1"
           >
             <span
-              className="h-2 w-2 flex-none rounded-full"
+              className="h-3 w-3 flex-none rounded-full shadow-1 ring-1 ring-inset ring-black/5"
               style={{ background: p.color }}
               aria-hidden="true"
             />

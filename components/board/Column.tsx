@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card } from "./Card";
 import { Icon } from "@/components/primitives/Icon";
+import { SPRING } from "@/lib/motion";
 import type { BoardColumn, Card as CardType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -47,11 +48,11 @@ export function Column({
       )}
     >
       <div className="flex items-center gap-2 px-2 pb-2 pt-1 text-[13px] font-semibold">
-        <span className={cn("h-2 w-2 rounded-full", stateDot[dotKey])} aria-hidden="true" />
+        <span className={cn("h-2.5 w-2.5 rounded-full shadow-1", stateDot[dotKey])} aria-hidden="true" />
         <span className="text-fg-1">{column.name}</span>
         <span className="ms-auto text-[12px] font-medium text-fg-3">{cards.length}</span>
       </div>
-      <div className="flex flex-col gap-2">
+      <motion.div layout transition={SPRING.gentle} className="flex flex-col gap-2">
         {cards.map((card) => (
           <Card
             key={card.id}
@@ -60,7 +61,7 @@ export function Column({
             onDragEnd={() => onDragEnd?.(card.id)}
           />
         ))}
-      </div>
+      </motion.div>
       <button
         type="button"
         onClick={() => onAddCard?.(column.id)}
