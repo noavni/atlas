@@ -7,8 +7,12 @@ Vercel's rewrite (/api/:path* -> /api/index) forwards the raw path.
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+import logging
+import traceback
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from api._core.idempotency import IdempotencyMiddleware
 from api.internal.worker_drain import router as worker_drain_router
@@ -65,6 +69,26 @@ app.include_router(organize_router)
 
 # Internal (secret-protected)
 app.include_router(worker_drain_router)
+
+
+log = logging.getLogger("atlas")
+
+
+@app.exception_handler(Exception)
+async def debug_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Private two-user app — surface exception details in the response so
+    the frontend can show them during debug. Swap for a Sentry handler once
+    the shape stabilises."""
+    log.exception("unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "internal",
+            "message": str(exc),
+            "type": type(exc).__name__,
+            "trace": traceback.format_exc().splitlines()[-12:],
+        },
+    )
 
 
 @app.get("/")
