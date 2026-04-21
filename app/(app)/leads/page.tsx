@@ -1,7 +1,16 @@
 "use client";
 
-import { Download, Plus, Search, SlidersHorizontal, SortAsc, Users as UsersIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  Check,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  SortAsc,
+  Upload,
+  Users as UsersIcon,
+  X as XIcon,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { Button } from "@/components/primitives/Button";
 import { EmptyState } from "@/components/shell/PageHeading";
@@ -13,14 +22,31 @@ import { LeadsTimeline } from "@/components/leads/LeadsTimeline";
 import { useMe } from "@/lib/queries/me";
 import { useLeads } from "@/lib/queries/leads";
 import { useLeadsUI, type LeadView } from "@/lib/store/leads";
+import { STAGE_LABEL } from "@/lib/leads";
 import { cn } from "@/lib/utils";
-import type { Lead, LeadActivity } from "@/lib/types";
+import type { Lead, LeadActivity, LeadStage } from "@/lib/types";
 
 const VIEWS: { id: LeadView; label: string }[] = [
   { id: "table", label: "Table" },
   { id: "pipeline", label: "Pipeline" },
   { id: "timeline", label: "Timeline" },
 ];
+
+type SortKey = "recent" | "value" | "name" | "stage";
+const SORT_LABEL: Record<SortKey, string> = {
+  recent: "Last touched",
+  value: "Value (high → low)",
+  name: "Name (A → Z)",
+  stage: "Stage",
+};
+const STAGE_RANK: Record<LeadStage, number> = {
+  new: 0,
+  contacted: 1,
+  qualified: 2,
+  proposal: 3,
+  won: 4,
+  lost: 5,
+};
 
 export default function LeadsHubPage() {
   const me = useMe();
@@ -30,14 +56,46 @@ export default function LeadsHubPage() {
   const setView = useLeadsUI((s) => s.setView);
   const openDrawer = useLeadsUI((s) => s.openLeadDrawer);
   const setNewLeadOpen = useLeadsUI((s) => s.setNewLeadOpen);
+  const setImportOpen = useLeadsUI((s) => s.setImportOpen);
   const [query, setQuery] = useState("");
+  const [stageFilter, setStageFilter] = useState<Set<LeadStage>>(new Set());
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("recent");
+  const [stageMenu, setStageMenu] = useState(false);
+  const [sortMenu, setSortMenu] = useState(false);
+  const stageBtnRef = useRef<HTMLDivElement>(null);
+  const sortBtnRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (stageBtnRef.current && !stageBtnRef.current.contains(e.target as Node))
+        setStageMenu(false);
+      if (sortBtnRef.current && !sortBtnRef.current.contains(e.target as Node))
+        setSortMenu(false);
+    }
+    window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, []);
 
   const allLeads = leads.data ?? [];
 
+  const availableTags = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const l of allLeads) {
+      for (const t of l.tags) seen.set(t, (seen.get(t) ?? 0) + 1);
+    }
+    return Array.from(seen.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([t]) => t);
+  }, [allLeads]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return allLeads;
-    return allLeads.filter((l) => {
+    const base = allLeads.filter((l) => {
+      if (stageFilter.size && !stageFilter.has(l.stage)) return false;
+      if (tagFilter && !l.tags.includes(tagFilter)) return false;
+      if (!q) return true;
       return (
         l.name.toLowerCase().includes(q) ||
         (l.company ?? "").toLowerCase().includes(q) ||
@@ -45,7 +103,34 @@ export default function LeadsHubPage() {
         l.tags.some((t) => t.toLowerCase().includes(q))
       );
     });
-  }, [allLeads, query]);
+    const sorted = [...base];
+    sorted.sort((a, b) => {
+      switch (sortKey) {
+        case "value":
+          return (b.value_cents ?? 0) - (a.value_cents ?? 0);
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "stage":
+          return STAGE_RANK[a.stage] - STAGE_RANK[b.stage];
+        case "recent":
+        default: {
+          const at = a.last_touched_at ? new Date(a.last_touched_at).getTime() : 0;
+          const bt = b.last_touched_at ? new Date(b.last_touched_at).getTime() : 0;
+          return bt - at;
+        }
+      }
+    });
+    return sorted;
+  }, [allLeads, query, stageFilter, tagFilter, sortKey]);
+
+  function toggleStage(s: LeadStage) {
+    setStageFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(s)) next.delete(s);
+      else next.add(s);
+      return next;
+    });
+  }
 
   const timelineActs = useMemo<LeadActivity[]>(() => {
     return filtered
@@ -83,8 +168,12 @@ export default function LeadsHubPage() {
               <LeadStats leads={allLeads} />
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <Button variant="secondary" leadingIcon={<Icon icon={Download} size={13} />}>
-                Export
+              <Button
+                variant="secondary"
+                leadingIcon={<Icon icon={Upload} size={13} />}
+                onClick={() => setImportOpen(true)}
+              >
+                Import
               </Button>
               <Button
                 variant="primary"
@@ -127,19 +216,130 @@ export default function LeadsHubPage() {
             />
           </div>
 
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle bg-surface-raised px-3 text-[12.5px] font-medium text-fg-2 transition-colors hover:bg-surface-2"
-          >
-            <Icon icon={SlidersHorizontal} size={13} /> Stage
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle bg-surface-raised px-3 text-[12.5px] font-medium text-fg-2 transition-colors hover:bg-surface-2"
-          >
-            <Icon icon={SortAsc} size={13} /> Sort
-          </button>
+          <div className="relative" ref={stageBtnRef}>
+            <button
+              type="button"
+              onClick={() => setStageMenu((v) => !v)}
+              className={cn(
+                "inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle px-3 text-[12.5px] font-medium text-fg-2 transition-colors",
+                stageFilter.size
+                  ? "bg-accent-tint text-accent"
+                  : "bg-surface-raised hover:bg-surface-2",
+              )}
+            >
+              <Icon icon={SlidersHorizontal} size={13} />
+              Stage
+              {stageFilter.size > 0 && (
+                <span className="rounded-full bg-accent px-1.5 py-px text-[10px] font-semibold text-fg-on-accent">
+                  {stageFilter.size}
+                </span>
+              )}
+            </button>
+            {stageMenu && (
+              <div className="absolute end-0 top-full z-30 mt-1 w-[200px] rounded-xl border border-border-subtle bg-surface-raised p-1.5 shadow-3">
+                {(Object.keys(STAGE_LABEL) as LeadStage[]).map((s) => {
+                  const active = stageFilter.has(s);
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => toggleStage(s)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-[12.5px] transition-colors",
+                        active ? "bg-accent-tint text-fg-1" : "text-fg-2 hover:bg-surface-hover",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex h-4 w-4 flex-none items-center justify-center rounded-sm border",
+                          active ? "border-accent bg-accent text-fg-on-accent" : "border-border-strong",
+                        )}
+                      >
+                        {active && <Icon icon={Check} size={10} />}
+                      </span>
+                      {STAGE_LABEL[s]}
+                    </button>
+                  );
+                })}
+                {stageFilter.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setStageFilter(new Set())}
+                    className="mt-1 flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-start text-[12px] font-medium text-fg-3 transition-colors hover:bg-surface-hover hover:text-fg-1"
+                  >
+                    <Icon icon={XIcon} size={11} /> Clear
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="relative" ref={sortBtnRef}>
+            <button
+              type="button"
+              onClick={() => setSortMenu((v) => !v)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle bg-surface-raised px-3 text-[12.5px] font-medium text-fg-2 transition-colors hover:bg-surface-2"
+            >
+              <Icon icon={SortAsc} size={13} /> Sort
+              <span className="text-fg-3">· {SORT_LABEL[sortKey].split(" ")[0]}</span>
+            </button>
+            {sortMenu && (
+              <div className="absolute end-0 top-full z-30 mt-1 w-[220px] rounded-xl border border-border-subtle bg-surface-raised p-1.5 shadow-3">
+                {(Object.keys(SORT_LABEL) as SortKey[]).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => {
+                      setSortKey(k);
+                      setSortMenu(false);
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-start text-[12.5px] transition-colors",
+                      sortKey === k ? "bg-accent-tint text-fg-1" : "text-fg-2 hover:bg-surface-hover",
+                    )}
+                  >
+                    {SORT_LABEL[k]}
+                    {sortKey === k && <Icon icon={Check} size={11} className="text-accent" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {availableTags.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto border-b border-border-subtle bg-surface-app px-10 py-2">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.06em] text-fg-3">
+              Tags
+            </span>
+            <button
+              type="button"
+              onClick={() => setTagFilter(null)}
+              className={cn(
+                "inline-flex flex-none items-center rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium transition-colors",
+                tagFilter === null
+                  ? "border-accent bg-accent-tint text-accent"
+                  : "border-border-subtle bg-surface-raised text-fg-2 hover:bg-surface-2",
+              )}
+            >
+              All
+            </button>
+            {availableTags.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTagFilter(tagFilter === t ? null : t)}
+                className={cn(
+                  "inline-flex flex-none items-center rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium transition-colors",
+                  tagFilter === t
+                    ? "border-accent bg-accent-tint text-accent"
+                    : "border-border-subtle bg-surface-raised text-fg-2 hover:bg-surface-2",
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
 
         {leads.isLoading ? (
           <TableSkeleton />

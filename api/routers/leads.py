@@ -97,6 +97,7 @@ class CreateLead(BaseModel):
     tags: list[str] = Field(default_factory=list)
     avatar_color: str = "#3D49F5"
     avatar_initials: str | None = None
+    linkedin_url: str | None = None
     next_step: str | None = None
     first_note: str | None = None
 
@@ -245,6 +246,7 @@ def create_lead(
         "tags": body.tags,
         "avatar_color": body.avatar_color,
         "avatar_initials": body.avatar_initials or _deterministic_initials(body.name),
+        "linkedin_url": body.linkedin_url,
         "next_step": body.next_step,
         "rank": new_rank,
         "created_by": ctx.user_id,

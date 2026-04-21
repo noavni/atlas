@@ -13,6 +13,8 @@ interface LeadsState {
   closeLeadDrawer: () => void;
   newLeadOpen: boolean;
   setNewLeadOpen: (v: boolean) => void;
+  importOpen: boolean;
+  setImportOpen: (v: boolean) => void;
 }
 
 export const useLeadsUI = create<LeadsState>()(
@@ -25,6 +27,8 @@ export const useLeadsUI = create<LeadsState>()(
       closeLeadDrawer: () => set({ drawerLeadId: null }),
       newLeadOpen: false,
       setNewLeadOpen: (v) => set({ newLeadOpen: v }),
+      importOpen: false,
+      setImportOpen: (v) => set({ importOpen: v }),
     }),
     {
       name: "atlas-leads-ui",

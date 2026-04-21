@@ -2,12 +2,18 @@
 
 import { EditorContent, useEditor } from "@tiptap/react";
 import Link from "@tiptap/extension-link";
+import Mention from "@tiptap/extension-mention";
 import Placeholder from "@tiptap/extension-placeholder";
 import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
+import { buildMentionSuggestion } from "./mentionSuggestion";
+import { useLeads } from "@/lib/queries/leads";
+import { useMe } from "@/lib/queries/me";
 import { useUpdatePage, type PageDoc } from "@/lib/queries/pages";
+import type { Lead } from "@/lib/types";
 
 export interface NoteEditorProps {
   page: PageDoc;
@@ -27,6 +33,29 @@ export function NoteEditor({ page }: NoteEditorProps) {
   const updatePage = useUpdatePage();
   const versionRef = useRef(page.version);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const router = useRouter();
+
+  const me = useMe();
+  const workspaceId = me.data?.workspaces[0]?.id;
+  const leadsQuery = useLeads(workspaceId);
+  const leadsRef = useRef<Lead[]>([]);
+  useEffect(() => {
+    leadsRef.current = leadsQuery.data ?? [];
+  }, [leadsQuery.data]);
+
+  const mentionExtension = useMemo(
+    () =>
+      Mention.configure({
+        HTMLAttributes: {
+          class:
+            "atlas-mention inline-flex items-center gap-1 rounded-full bg-accent-tint px-2 py-0.5 text-[0.85em] font-medium text-accent no-underline cursor-pointer",
+        },
+        renderText: ({ options, node }) =>
+          `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`,
+        suggestion: buildMentionSuggestion(leadsRef),
+      }),
+    [],
+  );
 
   const editor = useEditor({
     extensions: [
@@ -34,7 +63,7 @@ export function NoteEditor({ page }: NoteEditorProps) {
         heading: { levels: [1, 2, 3] },
       }),
       Placeholder.configure({
-        placeholder: "Start writing…",
+        placeholder: "Start writing… (type @ to link a lead)",
         emptyEditorClass: "is-editor-empty",
       }),
       Link.configure({
@@ -43,6 +72,7 @@ export function NoteEditor({ page }: NoteEditorProps) {
       }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      mentionExtension,
     ],
     content: page.content as object,
     immediatelyRender: false,
@@ -50,6 +80,13 @@ export function NoteEditor({ page }: NoteEditorProps) {
       attributes: {
         class:
           "prose-atlas focus:outline-none font-serif text-[18px] leading-[1.6] text-fg-1 min-h-[50vh]",
+      },
+      handleClickOn(_view, _pos, node) {
+        if (node.type.name === "mention" && node.attrs.id) {
+          router.push(`/leads/${node.attrs.id}`);
+          return true;
+        }
+        return false;
       },
     },
     onUpdate({ editor }) {

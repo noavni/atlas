@@ -59,3 +59,4 @@ test-results/
 .turbo/
 
 .vercel
+.env*.local

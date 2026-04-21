@@ -2,6 +2,7 @@
  * Must stay above @tailwind so CSS @import ordering stays valid. */
 @import "../design-system/colors_and_type.css";
 @import "../design-system/motion.css";
+@import "tippy.js/dist/tippy.css";
 
 @tailwind base;
 @tailwind components;
@@ -322,6 +323,37 @@ body {
   float: inline-start;
   height: 0;
   pointer-events: none;
+}
+
+/* Lead @-mention pill */
+.atlas-mention,
+.prose-atlas span[data-type="mention"],
+.prose-atlas a.atlas-mention {
+  display: inline;
+  background: var(--accent-tint);
+  color: var(--accent-primary);
+  padding: 0.05em 0.5em;
+  border-radius: 9999px;
+  font-size: 0.92em;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-quick) var(--ease-in-out);
+}
+.atlas-mention:hover,
+.prose-atlas span[data-type="mention"]:hover {
+  background: color-mix(in oklch, var(--accent-primary) 18%, transparent);
+}
+
+/* Tippy theme for mention popup */
+.tippy-box[data-theme~="atlas-mention"] {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+.tippy-box[data-theme~="atlas-mention"] > .tippy-content {
+  padding: 0;
 }
 
 /* Reduced motion */

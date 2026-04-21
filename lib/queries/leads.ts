@@ -69,6 +69,39 @@ export function useCreateLead() {
   });
 }
 
+export interface BulkLeadInput extends Omit<CreateLeadInput, "workspaceId"> {
+  location?: string;
+  linkedin_url?: string;
+}
+
+export function useBulkCreateLeads() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      workspaceId,
+      leads,
+    }: {
+      workspaceId: string;
+      leads: BulkLeadInput[];
+    }) => {
+      const created: Lead[] = [];
+      for (const l of leads) {
+        const id = uuid();
+        const out = await apiFetch<Lead>(`/v1/workspaces/${workspaceId}/leads`, {
+          method: "POST",
+          idempotencyKey: `lead.create:${id}`,
+          body: JSON.stringify({ id, ...l }),
+        });
+        created.push(out);
+      }
+      return created;
+    },
+    onSuccess: (_leads, input) => {
+      qc.invalidateQueries({ queryKey: ["leads", input.workspaceId] });
+    },
+  });
+}
+
 interface UpdateLeadInput {
   leadId: string;
   workspaceId: string;

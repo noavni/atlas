@@ -2,6 +2,7 @@
 
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { QuickCapture } from "@/components/inbox/QuickCapture";
+import { ImportLeadsModal } from "@/components/leads/ImportLeadsModal";
 import { LeadDrawer } from "@/components/leads/LeadDrawer";
 import { NewLeadModal } from "@/components/leads/NewLeadModal";
 import { PrefetchBoot } from "@/components/providers/PrefetchBoot";
@@ -42,6 +43,7 @@ export function AppShell({ crumbs, children, fullHeight = false }: AppShellProps
       <CommandPalette />
       <QuickCapture />
       <NewLeadModal />
+      <ImportLeadsModal />
       <LeadDrawer />
       <BottomTabBar />
     </div>
