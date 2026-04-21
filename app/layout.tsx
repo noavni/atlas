@@ -31,6 +31,7 @@ const sourceSerif = Source_Serif_4({
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: "400",
+  style: ["normal", "italic"],
   variable: "--font-instrument-serif",
   display: "swap",
 });

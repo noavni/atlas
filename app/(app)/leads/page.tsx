@@ -1,7 +1,7 @@
 "use client";
 
-import { Download, Filter, Plus, SortAsc, Users as UsersIcon } from "lucide-react";
-import { useMemo } from "react";
+import { Download, Plus, Search, SlidersHorizontal, SortAsc, Users as UsersIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { Button } from "@/components/primitives/Button";
 import { EmptyState } from "@/components/shell/PageHeading";
@@ -30,12 +30,25 @@ export default function LeadsHubPage() {
   const setView = useLeadsUI((s) => s.setView);
   const openDrawer = useLeadsUI((s) => s.openLeadDrawer);
   const setNewLeadOpen = useLeadsUI((s) => s.setNewLeadOpen);
+  const [query, setQuery] = useState("");
 
   const allLeads = leads.data ?? [];
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return allLeads;
+    return allLeads.filter((l) => {
+      return (
+        l.name.toLowerCase().includes(q) ||
+        (l.company ?? "").toLowerCase().includes(q) ||
+        (l.role ?? "").toLowerCase().includes(q) ||
+        l.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    });
+  }, [allLeads, query]);
+
   const timelineActs = useMemo<LeadActivity[]>(() => {
-    // The timeline stub: build from lead.last_touched + simulated events.
-    return allLeads
+    return filtered
       .filter((l) => l.last_touched_at)
       .map((l) => ({
         id: `${l.id}-touch`,
@@ -47,22 +60,29 @@ export default function LeadsHubPage() {
         attrs: {},
         created_at: l.last_touched_at!,
       }));
-  }, [allLeads]);
+  }, [filtered]);
 
   const fullHeight = view === "pipeline";
 
   return (
     <AppShell crumbs={["Atlas", "Leads"]} fullHeight={fullHeight}>
       <div className={cn("flex min-h-0 flex-1 flex-col", !fullHeight && "h-full")}>
-        <div className="border-b border-border-subtle px-10 pb-5 pt-8">
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-fg-3">
-            Relationships · Pipeline
+        {/* Hero: lowercase eyebrow + H1 left; Export/New lead right, aligned
+         * to the stat-row baseline so the CTA cluster hangs next to the
+         * numbers, matching the design. */}
+        <div className="border-b border-border-subtle px-10 pb-6 pt-8">
+          <div className="mb-1.5 text-[11.5px] font-medium lowercase text-fg-3">
+            relationships · pipeline
           </div>
-          <div className="flex items-end justify-between gap-4">
-            <h1 className="m-0 font-display text-[32px] font-semibold leading-[1.05] tracking-[-0.02em] text-fg-1">
-              Leads
-            </h1>
-            <div className="flex items-center gap-2">
+          <h1 className="m-0 font-display text-[38px] font-normal leading-[1.05] tracking-[-0.02em] text-fg-1">
+            Leads
+          </h1>
+
+          <div className="mt-6 flex items-end justify-between gap-6">
+            <div className="flex-1">
+              <LeadStats leads={allLeads} />
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
               <Button variant="secondary" leadingIcon={<Icon icon={Download} size={13} />}>
                 Export
               </Button>
@@ -75,20 +95,18 @@ export default function LeadsHubPage() {
               </Button>
             </div>
           </div>
-          <div className="mt-6">
-            <LeadStats leads={allLeads} />
-          </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-surface-app px-10 py-3.5">
-          <div className="inline-flex items-center gap-0.5 rounded-lg border border-border-subtle bg-surface-2 p-0.5">
+        {/* Toolbar: tabs (left) · search pill (centre) · Stage / Sort (right) */}
+        <div className="flex items-center gap-3 border-b border-border-subtle bg-surface-app px-10 py-3">
+          <div className="inline-flex items-center gap-0.5 rounded-[10px] border border-border-subtle bg-surface-2 p-0.5">
             {VIEWS.map((v) => (
               <button
                 key={v.id}
                 type="button"
                 onClick={() => setView(v.id)}
                 className={cn(
-                  "rounded-md px-3.5 py-1.5 text-[12.5px] font-medium transition-colors duration-150",
+                  "rounded-[8px] px-3.5 py-1.5 text-[12.5px] font-medium transition-colors duration-150",
                   view === v.id
                     ? "bg-surface-raised text-fg-1 shadow-1"
                     : "text-fg-2 hover:text-fg-1",
@@ -98,35 +116,50 @@ export default function LeadsHubPage() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" leadingIcon={<Icon icon={Filter} size={13} />}>
-              Filter
-            </Button>
-            <Button variant="ghost" leadingIcon={<Icon icon={SortAsc} size={13} />}>
-              Sort
-            </Button>
+
+          <div className="mx-auto flex h-9 min-w-[220px] max-w-[320px] flex-1 items-center gap-2 rounded-[8px] border border-border-subtle bg-surface-2 px-2.5">
+            <Icon icon={Search} size={13} className="text-fg-3" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Filter leads…"
+              className="flex-1 bg-transparent text-[12.5px] text-fg-1 outline-none placeholder:text-fg-4"
+            />
           </div>
+
+          <button
+            type="button"
+            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle bg-surface-raised px-3 text-[12.5px] font-medium text-fg-2 transition-colors hover:bg-surface-2"
+          >
+            <Icon icon={SlidersHorizontal} size={13} /> Stage
+          </button>
+          <button
+            type="button"
+            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border-subtle bg-surface-raised px-3 text-[12.5px] font-medium text-fg-2 transition-colors hover:bg-surface-2"
+          >
+            <Icon icon={SortAsc} size={13} /> Sort
+          </button>
         </div>
 
         {leads.isLoading ? (
           <TableSkeleton />
-        ) : allLeads.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={<Icon icon={UsersIcon} size={28} />}
-            title="No leads yet."
-            hint="Press ⌘⇧L to add one."
+            title={query ? "No matches." : "No leads yet."}
+            hint={query ? "Try a different search." : "Press ⌘⇧L to add one."}
           />
         ) : view === "table" ? (
-          <LeadsTable leads={allLeads} onSelect={(l: Lead) => openDrawer(l.id)} />
+          <LeadsTable leads={filtered} onSelect={(l: Lead) => openDrawer(l.id)} />
         ) : view === "pipeline" ? (
           <LeadsPipeline
-            leads={allLeads}
+            leads={filtered}
             workspaceId={workspaceId!}
             onSelect={(l) => openDrawer(l.id)}
           />
         ) : (
           <LeadsTimeline
-            leads={allLeads}
+            leads={filtered}
             activities={timelineActs}
             onSelect={(l) => openDrawer(l.id)}
           />

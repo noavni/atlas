@@ -20,13 +20,11 @@ function StatCard({ label, value, caption, captionTone = "muted" }: StatCardProp
         ? "text-[var(--apricot-600)]"
         : "text-fg-3";
   return (
-    <div className="flex flex-col gap-1">
-      <div className="font-display text-[28px] font-semibold leading-[1.05] tracking-[-0.02em] text-fg-1">
+    <div className="flex flex-col gap-1.5">
+      <div className="font-display text-[36px] font-normal leading-[1] tracking-[-0.02em] text-fg-1">
         {value}
       </div>
-      <div className="text-[11.5px] font-medium uppercase tracking-[0.06em] text-fg-3">
-        {label}
-      </div>
+      <div className="text-[11.5px] font-medium lowercase text-fg-3">{label}</div>
       {caption && <div className={cn("text-[11px] font-medium", captionColor)}>{caption}</div>}
     </div>
   );
