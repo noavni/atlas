@@ -28,7 +28,7 @@ export function PrefetchBoot() {
         const ws = me.workspaces[0];
         if (!ws) return;
 
-        // Warm projects + inbox in parallel
+        // Warm every primary query in parallel so back/forth nav is instant
         await Promise.allSettled([
           qc.prefetchQuery({
             queryKey: ["projects", ws.id],
@@ -43,6 +43,11 @@ export function PrefetchBoot() {
           qc.prefetchQuery({
             queryKey: ["inbox", ws.id, "inbox"],
             queryFn: () => apiFetch(`/v1/inbox?workspace_id=${ws.id}&status=inbox`),
+            staleTime: 60 * 1000,
+          }),
+          qc.prefetchQuery({
+            queryKey: ["leads", ws.id],
+            queryFn: () => apiFetch(`/v1/workspaces/${ws.id}/leads`),
             staleTime: 60 * 1000,
           }),
         ]);

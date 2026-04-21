@@ -22,6 +22,7 @@ from api.routers.columns import router as columns_router
 from api.routers.graph import router as graph_router
 from api.routers.health import router as health_router
 from api.routers.inbox import router as inbox_router
+from api.routers.leads import router as leads_router
 from api.routers.me import router as me_router
 from api.routers.organize import router as organize_router
 from api.routers.pages import router as pages_router
@@ -65,6 +66,7 @@ app.include_router(attachments_router)
 app.include_router(search_router)
 app.include_router(graph_router)
 app.include_router(organize_router)
+app.include_router(leads_router)
 
 # Internal (secret-protected)
 app.include_router(worker_drain_router)

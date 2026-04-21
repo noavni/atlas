@@ -1,0 +1,1589 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Atlas — Redesign</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="design-system/colors_and_type.css" />
+<link rel="stylesheet" href="design-system/motion.css" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  html, body { margin:0; padding:0; background: var(--surface-app); color: var(--fg-1); font-family: var(--font-ui); }
+  *, *::before, *::after { box-sizing: border-box; }
+  button { font-family: inherit; }
+  .app-frame {
+    width: 1360px; height: 860px; margin: 24px auto;
+    border-radius: var(--radius-xl);
+    background: var(--surface-app);
+    box-shadow: var(--shadow-4);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    position: relative;
+  }
+  /* ------ SIDEBAR ------ */
+  .sb { background: var(--surface-app); border-inline-end: 1px solid var(--border-subtle); padding: 14px 10px 10px; display:flex; flex-direction:column; overflow:hidden; }
+  .sb-brand { display:flex; align-items:center; gap: 10px; padding: 6px 8px 14px; }
+  .sb-brand .mark { width: 28px; height: 28px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 30%, #D7DCFF 0%, #8E9AF5 32%, #4B5BE8 68%, #1F2672 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 2px 6px rgba(61,73,245,.25);
+    position:relative;
+  }
+  .sb-brand .mark::after{content:""; position:absolute; top:4px; left:6px; width:7px; height:5px; background: radial-gradient(ellipse at 38% 30%, rgba(255,255,255,.95), rgba(255,255,255,0) 70%); border-radius: 50%;}
+  .sb-brand .title { font-weight: 600; font-size: 13.5px; color: var(--fg-1); line-height:1.2; }
+  .sb-brand .sub { font-size: 11px; color: var(--fg-3); margin-top:1px; }
+  .sb-nav { display:flex; flex-direction:column; gap: 1px; }
+  .sb-item { display:flex; align-items:center; gap: 10px; padding: 6px 9px; border-radius: 8px;
+    font-size: 13px; color: var(--fg-2); cursor:pointer; transition: background .12s var(--ease-in-out), color .12s; font-weight: 500; }
+  .sb-item:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .sb-item.active { background: var(--surface-2); color: var(--fg-1); box-shadow: var(--shadow-1); }
+  .sb-item.active svg { color: var(--accent-primary); }
+  .sb-item svg { width:16px; height:16px; stroke-width:1.75; color: var(--fg-3); flex:none; }
+  .sb-item .badge { margin-inline-start:auto; font-size: 10.5px; font-weight: 600; color: var(--fg-3); background: var(--surface-2); padding: 1px 6px; border-radius: 9999px; }
+  .sb-item.active .badge { background: var(--accent-tint); color: var(--accent-primary); }
+  .sb-section { margin-top: 16px; }
+  .sb-section-h { display:flex; align-items:center; padding: 2px 10px 4px; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-3); }
+  .sb-section-h .plus { margin-inline-start:auto; width: 18px; height:18px; display:grid; place-items:center; border-radius: 4px; color: var(--fg-3); cursor:pointer;}
+  .sb-section-h .plus:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .sb-proj { display:flex; align-items:center; gap: 10px; padding: 5px 10px 5px 22px; border-radius: 6px; font-size: 12.5px; color: var(--fg-2); cursor:pointer; }
+  .sb-proj:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .sb-dot { width: 10px; height: 10px; border-radius: 50%; flex:none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+  .sb-foot { margin-top: auto; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
+
+  /* ------ MAIN COLUMN ------ */
+  .main { display:flex; flex-direction:column; min-width: 0; min-height: 0; background: var(--surface-app); }
+  .topbar { height: 52px; display:flex; align-items:center; gap: 14px; padding: 0 20px; border-bottom: 1px solid var(--border-subtle);
+    background: var(--material-thick); backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%);
+  }
+  .crumb { display:flex; align-items:center; gap:8px; font-size: 12.5px; color: var(--fg-2); }
+  .crumb .last { color: var(--fg-1); font-weight: 500; }
+  .crumb .sep { color: var(--fg-4); }
+  .search { flex:1; max-width: 440px; margin: 0 auto; height: 32px; display:flex; align-items:center; gap: 8px;
+    background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0 10px; color: var(--fg-3); font-size: 12.5px; cursor:pointer; }
+  .search:hover { background: var(--surface-3); color: var(--fg-2); }
+  .search svg { width: 14px; height: 14px; }
+  .kbd { font-family: var(--font-mono); font-size: 10.5px; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,.05); color: var(--fg-2); border: 1px solid var(--border-subtle); }
+  [data-theme="dark"] .kbd { background: rgba(255,255,255,.06); }
+  .tb-right { margin-inline-start: auto; display:flex; align-items:center; gap: 6px; }
+  .iconbtn { width: 30px; height: 30px; border-radius: 8px; display:grid; place-items:center; color: var(--fg-2); cursor: pointer; transition: background .12s, color .12s; background:transparent; border:0; }
+  .iconbtn:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .iconbtn svg { width: 16px; height: 16px; stroke-width: 1.75; }
+  .ask-btn { height: 30px; padding: 0 12px; border-radius: 9999px; display:inline-flex; align-items:center; gap: 6px;
+    background: var(--surface-raised); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-1); color: var(--fg-1); font-size: 12.5px; font-weight: 500; cursor:pointer; }
+  .ask-btn:hover { background: var(--surface-2); }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #FF8A3D, #E86D1F); color: white; display:grid; place-items:center; font-size: 11px; font-weight: 600; }
+  .body { flex:1; min-height: 0; min-width: 0; overflow: auto; }
+  .atlas-board-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+  .atlas-board-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+  .atlas-board-scroll::-webkit-scrollbar-thumb:hover { background: var(--fg-4); }
+  .atlas-board-scroll::-webkit-scrollbar-track { background: transparent; }
+
+  /* ------ PAGE HEADER ------ */
+  .ph { padding: 36px 40px 20px; display:flex; align-items:flex-end; justify-content:space-between; gap: 24px; }
+  .ph .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); margin-bottom: 8px; }
+  .ph h1 { margin: 0; font-family: var(--font-display); font-size: 32px; font-weight: 600; letter-spacing: -0.02em; color: var(--fg-1); }
+  .ph .sub { margin-top: 6px; font-size: 13.5px; color: var(--fg-3); }
+  .ph-actions { display:flex; gap: 8px; align-items:center; }
+  .btn { height: 32px; padding: 0 12px; border-radius: 8px; display:inline-flex; align-items:center; gap: 6px; font-size: 13px; font-weight: 500; cursor:pointer; transition: background .15s, transform .1s; border:0;}
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: var(--accent-primary); color: var(--fg-on-accent); box-shadow: var(--shadow-1); }
+  .btn.primary:hover { background: var(--accent-primary-hover); }
+  .btn.ghost { background: transparent; color: var(--fg-2); }
+  .btn.ghost:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .btn.secondary { background: var(--surface-raised); border: 1px solid var(--border-subtle); color: var(--fg-1); box-shadow: var(--shadow-1); }
+  .btn.secondary:hover { background: var(--surface-2); }
+  .btn svg { width: 14px; height: 14px; stroke-width: 1.75; }
+
+  /* ------ BOARD ------ */
+  .board-wrap { padding: 0 24px 24px; height: calc(100% - 120px); display:flex; flex-direction:column; }
+  .board-cols { display:flex; gap: 14px; overflow-x: auto; overflow-y: hidden; flex: 1; min-height: 0; padding-bottom: 12px; }
+  .bcol { width: 300px; flex: none; background: var(--surface-2); border-radius: 14px; padding: 10px 10px 8px; display:flex; flex-direction:column; max-height: 100%; }
+  .bcol-h { display:flex; align-items:center; gap: 8px; padding: 4px 6px 10px; }
+  .bcol-h .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .bcol-h .name { font-size: 13px; font-weight: 600; color: var(--fg-1); }
+  .bcol-h .count { margin-inline-start: auto; font-size: 11.5px; color: var(--fg-3); font-weight: 500; background: var(--surface-raised); padding: 1px 7px; border-radius: 9999px; }
+  .bcol-h .more { color: var(--fg-3); cursor: pointer; }
+  .bcol-body { overflow-y: auto; flex:1; min-height: 0; display:flex; flex-direction:column; gap: 8px; padding: 2px 2px 8px; }
+  .bcard { background: var(--surface-raised); border-radius: 12px; padding: 12px 14px 12px; box-shadow: var(--shadow-1); cursor: grab; transition: transform .18s var(--spring-gentle), box-shadow .2s; }
+  .bcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .bcard .tag { display:inline-flex; align-items:center; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .tag.indigo { background: var(--accent-tint); color: var(--accent-primary); }
+  .tag.apricot { background: var(--apricot-300); color: var(--apricot-600); }
+  .tag.sage { background: var(--sage-100); color: var(--sage-500); }
+  .tag.amber { background: var(--amber-100); color: var(--amber-500); }
+  .tag.persimmon { background: var(--persimmon-100); color: var(--persimmon-500); }
+  .tag.neutral { background: var(--surface-2); color: var(--fg-3); }
+  .bcard .title { margin-top: 8px; font-size: 13.5px; font-weight: 500; color: var(--fg-1); line-height: 1.35; letter-spacing: -0.005em; }
+  .bcard .desc { margin-top: 4px; font-size: 12.5px; color: var(--fg-3); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow:hidden; }
+  .bcard .meta { margin-top: 10px; display:flex; align-items:center; gap: 10px; font-size: 11.5px; color: var(--fg-3); }
+  .bcard .meta .grow { flex:1; }
+  .bcard .meta .avs { display:flex; }
+  .bcard .meta .avs .av { width:20px; height:20px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--surface-raised); margin-inline-start: -5px; color:white; font-size: 9.5px; font-weight: 600; display:grid; place-items:center; }
+  .bcard .meta .avs .av:first-child { margin-inline-start: 0; }
+  .bcard .meta .mi { display:inline-flex; align-items:center; gap: 4px; }
+  .bcard .meta svg { width: 12px; height: 12px; stroke-width: 1.75; }
+  .bcol .addcard { margin-top: 8px; display:flex; align-items:center; gap: 6px; padding: 8px 10px; color: var(--fg-3); font-size: 12.5px; font-weight: 500; border-radius: 8px; cursor: pointer; }
+  .bcol .addcard:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .bcol .addcard svg { width: 14px; height: 14px; stroke-width: 1.75; }
+
+  /* ------ NOTES ------ */
+  .notes-layout { display:grid; grid-template-columns: 280px 1fr 260px; height: calc(100% - 52px); overflow:hidden; }
+  .notes-list { border-inline-end: 1px solid var(--border-subtle); overflow-y:auto; padding: 18px 12px; }
+  .notes-list-h { padding: 4px 10px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .notes-list-h .t { font-size: 11px; font-weight:600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); }
+  .note-row { display:block; padding: 10px 12px; border-radius: 10px; margin-bottom: 2px; cursor:pointer; border: 1px solid transparent; transition: background .12s; }
+  .note-row:hover { background: var(--surface-hover); }
+  .note-row.active { background: var(--accent-tint); border-color: color-mix(in oklch, var(--accent-primary) 25%, transparent); }
+  .note-row .nt { font-size: 13px; font-weight: 600; color: var(--fg-1); letter-spacing: -0.005em; }
+  .note-row .np { font-size: 12px; color: var(--fg-3); margin-top: 3px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow:hidden;}
+  .note-row .nm { font-size: 10.5px; color: var(--fg-4); margin-top: 6px; display:flex; gap: 8px; align-items:center; }
+  .editor { overflow-y: auto; padding: 48px 0; }
+  .editor-inner { max-width: 680px; margin: 0 auto; padding: 0 40px; }
+  .editor h1.read { font-family: var(--font-display); font-size: 40px; font-weight: 600; letter-spacing: -0.022em; color: var(--fg-1); margin: 0 0 6px; line-height: 1.1; }
+  .editor .read-meta { font-size: 12px; color: var(--fg-3); margin-bottom: 28px; display:flex; gap: 12px; align-items:center;}
+  .editor p.read { font-family: var(--font-serif); font-size: 18px; line-height: 1.68; color: var(--fg-1); margin: 0 0 16px; }
+  .editor h2.read { font-family: var(--font-display); font-size: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--fg-1); margin: 32px 0 10px; }
+  .editor .wikilink { color: var(--accent-primary); border-bottom: 1px solid color-mix(in oklch, var(--accent-primary) 40%, transparent); text-decoration:none; cursor:pointer;}
+  .editor .wikilink:hover { border-bottom-color: var(--accent-primary); }
+  .editor .mention { background: var(--apricot-300); color: var(--apricot-600); padding: 1px 7px; border-radius: 4px; font-weight: 500; cursor:pointer; font-family: var(--font-ui); font-size: 16px; }
+  .editor blockquote.read { font-family: var(--font-serif); font-style: italic; color: var(--fg-2); border-inline-start: 2px solid var(--accent-primary); padding-inline-start: 20px; margin: 20px 0; font-size: 19px; line-height: 1.6; }
+  .editor ul.read { font-family: var(--font-serif); font-size: 18px; line-height: 1.55; padding-inline-start: 24px; margin: 0 0 16px; color: var(--fg-1); }
+  .editor ul.read li { margin-bottom: 6px; }
+  .backlinks { border-inline-start: 1px solid var(--border-subtle); padding: 28px 20px; overflow-y: auto; background: var(--surface-app); }
+  .bl-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); margin-bottom: 14px; }
+  .bl-item { padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; cursor:pointer; }
+  .bl-item:hover { background: var(--surface-hover); }
+  .bl-item .bt { font-size: 12.5px; font-weight: 600; color: var(--fg-1); }
+  .bl-item .bs { font-size: 12px; color: var(--fg-3); margin-top: 4px; line-height:1.45; }
+
+  /* ------ INBOX ------ */
+  .inbox-wrap { max-width: 760px; margin: 0 auto; padding: 36px 40px 40px; }
+  .inbox-head { display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; margin-bottom: 24px; }
+  .inbox-pill { display:inline-flex; align-items:center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 9999px;
+    background: var(--surface-raised); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-1);
+    color: var(--fg-1); font-size: 12.5px; font-weight: 500; cursor:pointer;}
+  .inbox-pill:hover { background: var(--surface-2); }
+  .inbox-filters { display:flex; gap: 4px; margin-bottom: 18px; padding: 4px; background: var(--surface-2); border-radius: 10px; width: fit-content; }
+  .inbox-filter { padding: 5px 11px; border-radius: 6px; font-size: 12px; color: var(--fg-3); font-weight: 500; cursor:pointer; }
+  .inbox-filter:hover { color: var(--fg-1); }
+  .inbox-filter.active { background: var(--surface-raised); color: var(--fg-1); box-shadow: var(--shadow-1); }
+  .inbox-group { margin-top: 22px; }
+  .inbox-group-h { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); padding: 4px 4px 10px; }
+  .ix-item { display:flex; gap: 12px; align-items:flex-start; padding: 14px 16px; background: var(--surface-raised);
+    border: 1px solid var(--border-subtle); border-radius: 12px; box-shadow: var(--shadow-1); margin-bottom: 8px;
+    transition: box-shadow .18s, transform .18s; position:relative;}
+  .ix-item:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); }
+  .ix-item:hover .ix-actions { opacity: 1; }
+  .ix-kind { width: 32px; height: 32px; border-radius: 8px; display:grid; place-items:center; flex:none; }
+  .ix-kind svg { width: 15px; height: 15px; stroke-width: 1.75; }
+  .ix-kind.text { background: var(--surface-2); color: var(--fg-2); }
+  .ix-kind.voice { background: var(--apricot-300); color: var(--apricot-600); }
+  .ix-kind.image { background: var(--sage-100); color: var(--sage-500); }
+  .ix-kind.url { background: var(--accent-tint); color: var(--accent-primary); }
+  .ix-kind.file { background: var(--amber-100); color: var(--amber-500); }
+  .ix-body { flex: 1; min-width:0; }
+  .ix-when { font-size: 11px; color: var(--fg-3); margin-bottom: 3px; display:flex; align-items:center; gap: 6px;}
+  .ix-when .dot-sep { color: var(--fg-4); }
+  .ix-text { font-family: var(--font-serif); font-size: 16px; line-height: 1.5; color: var(--fg-1); }
+  .ix-actions { display:flex; gap: 4px; opacity: 0; transition: opacity .15s; position: absolute; top: 10px; right: 12px; background: var(--surface-raised); padding: 3px; border-radius: 9px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-2); }
+  .ix-actions button { border: 0; background: transparent; padding: 5px 9px; font-size: 11.5px; font-weight: 500; color: var(--fg-2); cursor: pointer; border-radius: 6px; display:inline-flex; align-items:center; gap: 4px;}
+  .ix-actions button:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .ix-actions button svg { width: 12px; height: 12px; stroke-width: 1.75; }
+  .ix-actions button.primary { background: var(--accent-primary); color: var(--fg-on-accent); }
+  .ix-actions button.primary:hover { background: var(--accent-primary-hover); }
+
+  /* ------ GRAPH ------ */
+  .graph-stage { margin: 16px 40px 40px; height: calc(100% - 140px); border-radius: 16px; background: var(--surface-raised); box-shadow: var(--shadow-1); position: relative; overflow: hidden; }
+  .graph-toolbar { position: absolute; top: 16px; left: 16px; display:flex; gap: 6px; background: var(--material-thick); backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 4px; box-shadow: var(--shadow-2); z-index: 3;}
+  .graph-toolbar .iconbtn { width: 28px; height:28px; border-radius: 6px; }
+  .graph-legend { position:absolute; bottom: 16px; left: 16px; background: var(--material-thick); backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px 14px; box-shadow: var(--shadow-2); font-size: 11.5px; color: var(--fg-2); z-index: 3;}
+  .graph-legend .item{display:flex; align-items:center; gap:8px; padding: 3px 0;}
+  .graph-legend .sw { width: 10px; height: 10px; border-radius: 50%; }
+  .graph-side { position:absolute; top: 16px; right: 16px; width: 260px; background: var(--material-thick); backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px; box-shadow: var(--shadow-3); z-index: 3; }
+  .graph-side .lbl { font-size: 10.5px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .graph-side h4 { margin: 6px 0 6px; font-size: 15px; font-weight: 600; color: var(--fg-1); letter-spacing: -0.01em;}
+  .graph-side .stats { display:flex; gap: 12px; font-size: 11.5px; color: var(--fg-3); margin-bottom: 12px; }
+  .graph-side .mini { font-size: 12px; color: var(--fg-2); padding: 6px 8px; border-radius: 6px; cursor:pointer; display:flex; align-items:center; gap: 8px;}
+  .graph-side .mini:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .graph-side .mini .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-primary); }
+
+  /* ------ LEADS ------ */
+  .leads-wrap { padding: 0; height: 100%; display:flex; flex-direction:column; }
+  .leads-topbar { padding: 32px 40px 20px; display:flex; align-items:flex-end; justify-content:space-between; gap: 24px; border-bottom: 1px solid var(--border-subtle); }
+  .leads-stats { display:flex; gap: 32px; margin-top: 18px; }
+  .stat { }
+  .stat .sn { font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--fg-1); line-height: 1; }
+  .stat .sl { font-size: 11.5px; color: var(--fg-3); margin-top: 6px; }
+  .stat .sc { font-size: 11px; color: var(--sage-500); margin-top: 2px; font-weight: 500;}
+  .leads-toolbar { padding: 14px 40px; display:flex; align-items:center; gap: 12px; border-bottom: 1px solid var(--border-subtle); background: var(--surface-app);}
+  .lead-tabs { display:flex; gap: 0; }
+  .lead-tab { padding: 7px 14px; border-radius: 8px; font-size: 12.5px; color: var(--fg-3); font-weight: 500; cursor:pointer; display:inline-flex; align-items:center; gap: 6px; }
+  .lead-tab:hover { color: var(--fg-1); background: var(--surface-hover); }
+  .lead-tab.active { color: var(--fg-1); background: var(--surface-2); }
+  .lead-tab svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .leads-table-wrap { flex:1; overflow: auto; padding: 0 40px 40px; }
+  .leads-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 14px; }
+  .leads-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); text-align: start; padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; background: var(--surface-app); z-index: 1;}
+  .leads-table td { padding: 14px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; color: var(--fg-1); }
+  .leads-table tr:hover td { background: var(--surface-hover); cursor: pointer; }
+  .lead-person { display:flex; align-items:center; gap: 10px; }
+  .lead-av { width: 30px; height: 30px; border-radius: 50%; display:grid; place-items:center; color: white; font-size: 11px; font-weight: 600; flex:none; }
+  .lead-name { font-weight: 600; letter-spacing: -0.005em; font-size: 13.5px; }
+  .lead-role { font-size: 11.5px; color: var(--fg-3); margin-top: 2px; }
+  .stage-pill { display:inline-flex; align-items:center; gap: 6px; padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .stage-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .stage-new { background: var(--accent-tint); color: var(--accent-primary); }
+  .stage-new .dot { background: var(--accent-primary); }
+  .stage-contacted { background: var(--apricot-300); color: var(--apricot-600); }
+  .stage-contacted .dot { background: var(--apricot-500); }
+  .stage-qualified { background: var(--amber-100); color: var(--amber-500); }
+  .stage-qualified .dot { background: var(--amber-500); }
+  .stage-proposal { background: color-mix(in oklch, var(--accent-primary) 14%, var(--surface-raised)); color: var(--accent-primary); }
+  .stage-proposal .dot { background: var(--accent-primary); }
+  .stage-won { background: var(--sage-100); color: var(--sage-500); }
+  .stage-won .dot { background: var(--sage-500); }
+  .stage-lost { background: var(--persimmon-100); color: var(--persimmon-500); }
+  .stage-lost .dot { background: var(--persimmon-500); }
+  .lead-value { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--fg-1); font-weight: 500; }
+  .lead-tag-row { display:flex; gap: 4px; flex-wrap: wrap; }
+  .mini-tag { padding: 1px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 500; background: var(--surface-2); color: var(--fg-2); }
+
+  /* ------ LEAD DETAIL (drawer style) ------ */
+  .lead-drawer-bg { position: absolute; inset: 0; background: rgba(0,0,0,.3); backdrop-filter: blur(2px); z-index: 40; opacity: 0; pointer-events:none; transition: opacity .2s; }
+  .lead-drawer-bg.open { opacity: 1; pointer-events: auto; }
+  .lead-drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 540px; background: var(--surface-app); border-inline-start: 1px solid var(--border-subtle); z-index: 50; box-shadow: var(--shadow-4); transform: translateX(100%); transition: transform .3s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; overflow:hidden;}
+  .lead-drawer.open { transform: translateX(0); }
+  [dir="rtl"] .lead-drawer { left: 0; right: auto; border-inline-start: 0; border-inline-end: 1px solid var(--border-subtle); transform: translateX(-100%); }
+  [dir="rtl"] .lead-drawer.open { transform: translateX(0); }
+  .ld-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--border-subtle); display:flex; align-items:center; gap: 12px;}
+  .ld-head .close { margin-inline-start:auto; }
+  .ld-body { flex:1; overflow-y: auto; padding: 20px 24px 32px; }
+  .ld-hero { display:flex; align-items:center; gap: 14px; margin-bottom: 20px;}
+  .ld-hero .av { width: 56px; height: 56px; border-radius: 50%; color: white; display:grid; place-items:center; font-size: 20px; font-weight: 600; flex:none; }
+  .ld-hero h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: -0.018em;}
+  .ld-hero .sub { font-size: 12.5px; color: var(--fg-3); margin-top: 3px; }
+  .ld-meta { display:grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; padding: 14px 16px; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--border-subtle); margin-bottom: 24px;}
+  .ld-meta .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); font-weight: 600; margin-bottom: 4px; }
+  .ld-meta .v { font-size: 13px; color: var(--fg-1); font-weight: 500;}
+  .ld-section { margin-top: 22px; }
+  .ld-section h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); margin: 0 0 10px;}
+  .activity { display:flex; flex-direction:column; gap: 0; position: relative; }
+  .activity::before { content:""; position: absolute; inset-inline-start: 13px; top: 8px; bottom: 8px; width: 1px; background: var(--border-subtle); }
+  .act-item { display:flex; gap: 12px; padding: 8px 0; align-items: flex-start; position:relative; }
+  .act-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--surface-raised); border: 1px solid var(--border-subtle); display:grid; place-items:center; color: var(--fg-2); flex:none; z-index:1;}
+  .act-dot svg { width: 12px; height: 12px; stroke-width: 1.75; }
+  .act-body .at { font-size: 12.5px; color: var(--fg-1); line-height: 1.4; }
+  .act-body .atw { font-weight: 500;}
+  .act-body .ad { font-size: 11px; color: var(--fg-3); margin-top: 2px; }
+  .linked-notes { display:flex; flex-direction:column; gap: 4px; }
+  .linked-note { padding: 8px 10px; border-radius: 8px; display:flex; align-items:center; gap: 8px; font-size: 13px; color: var(--fg-1); cursor:pointer; }
+  .linked-note:hover { background: var(--surface-hover); }
+  .linked-note .m { margin-inline-start:auto; font-size: 10.5px; color: var(--fg-3); }
+  .linked-note svg { width: 14px; height: 14px; color: var(--fg-3); stroke-width: 1.75; }
+
+  /* ------ COMMAND PALETTE overlay ------ */
+  .overlay { position: fixed; inset: 0; z-index: 100; display:none; align-items: flex-start; justify-content: center; padding-top: 14vh; }
+  .overlay.on { display:flex; }
+  .overlay .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); }
+  .cmd { position: relative; z-index: 1; width: 560px; max-width: calc(100% - 32px); background: var(--material-thick); backdrop-filter: blur(32px) saturate(180%); border: 1px solid var(--border-subtle); border-radius: 16px; box-shadow: var(--shadow-4); overflow: hidden;}
+  .cmd-in { display:flex; align-items:center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border-subtle);}
+  .cmd-in svg { width: 16px; height: 16px; color: var(--fg-3); stroke-width: 1.75; }
+  .cmd-in input { flex:1; border:0; outline: 0; background: transparent; font-size: 15px; color: var(--fg-1); font-family: var(--font-ui); }
+  .cmd-list { max-height: 360px; overflow-y: auto; padding: 6px;}
+  .cmd-sec { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); padding: 10px 10px 6px; }
+  .cmd-row { display:flex; align-items:center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor:pointer; font-size: 13px; color: var(--fg-1); }
+  .cmd-row:hover, .cmd-row.sel { background: var(--accent-tint); }
+  .cmd-row svg { width: 14px; height: 14px; stroke-width: 1.75; color: var(--fg-3); }
+  .cmd-row.sel svg { color: var(--accent-primary); }
+  .cmd-row .hint { margin-inline-start:auto; font-size: 10.5px; color: var(--fg-3); }
+
+  /* TAB nav between screens */
+  .screen-tabs { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display:flex; gap: 4px; background: var(--material-thick); backdrop-filter: blur(24px); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 4px; box-shadow: var(--shadow-3); z-index: 200;}
+  .screen-tabs button { background: transparent; border: 0; padding: 6px 14px; border-radius: 9999px; font-size: 12.5px; font-weight: 500; color: var(--fg-2); cursor:pointer; }
+  .screen-tabs button:hover { color: var(--fg-1); }
+  .screen-tabs button.on { background: var(--accent-primary); color: var(--fg-on-accent); }
+
+  /* Tweaks panel */
+  .tweaks { position: fixed; bottom: 68px; right: 24px; width: 260px; background: var(--material-thick); backdrop-filter: blur(28px) saturate(180%); border: 1px solid var(--border-subtle); border-radius: 14px; box-shadow: var(--shadow-4); padding: 14px 16px; z-index: 200; display: none; }
+  .tweaks.on { display: block; }
+  .tweaks h4 { margin: 0 0 10px; font-size: 12px; font-weight: 600; color: var(--fg-1); }
+  .tweaks .tw-row { display:flex; align-items:center; gap: 8px; font-size: 12px; color: var(--fg-2); margin-bottom: 8px; }
+  .tweaks select, .tweaks input[type=range] { flex:1; }
+  .tweaks button.mini { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--surface-raised); font-size: 11.5px; color: var(--fg-2); cursor:pointer; }
+  .tweaks button.mini.on { background: var(--accent-primary); color: var(--fg-on-accent); border-color: transparent; }
+
+  [dir="rtl"] body { font-family: var(--font-hebrew-ui); }
+  [dir="rtl"] .editor p.read, [dir="rtl"] .editor ul.read, [dir="rtl"] .editor blockquote.read { font-family: var(--font-hebrew-serif); }
+
+  /* ===== LEADS — sub-views (pipeline, timeline, detail, new) ===== */
+  .sub-screen { display: none; height: 100%; flex-direction: column; }
+  .sub-screen.on { display: flex; }
+
+  /* Pipeline (Kanban) */
+  .pipe-wrap { flex:1; padding: 0 40px 32px; overflow: hidden; display:flex; flex-direction:column; min-height: 0; }
+  .pipe-cols { display:flex; gap: 14px; overflow-x: auto; overflow-y: hidden; flex:1; min-height: 0; padding-bottom: 12px; margin-top: 14px;}
+  .pcol { width: 280px; flex: none; background: var(--surface-2); border-radius: 14px; padding: 10px 10px 8px; display:flex; flex-direction:column; max-height: 100%;}
+  .pcol-h { display:flex; align-items:center; gap: 8px; padding: 4px 6px 10px; }
+  .pcol-h .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .pcol-h .name { font-size: 12.5px; font-weight: 600; color: var(--fg-1); text-transform: uppercase; letter-spacing: 0.04em; }
+  .pcol-h .n { margin-inline-start: auto; font-size: 11px; color: var(--fg-3); }
+  .pcol-totals { padding: 2px 6px 8px; font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-3); display:flex; justify-content:space-between;}
+  .pcol-totals b { color: var(--fg-1); font-weight: 600; font-family: var(--font-mono);}
+  .pcol-body { overflow-y: auto; flex:1; min-height: 0; display:flex; flex-direction:column; gap: 8px; padding: 2px 2px 8px;}
+  .lcard { background: var(--surface-raised); border-radius: 10px; padding: 10px 12px; box-shadow: var(--shadow-1); cursor: pointer; transition: transform .18s var(--spring-gentle), box-shadow .2s;}
+  .lcard:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); }
+  .lcard .top { display:flex; align-items:center; gap:8px; }
+  .lcard .top .lead-av { width: 22px; height:22px; font-size:10px; }
+  .lcard .top .nm { font-size: 12.5px; font-weight: 600; color: var(--fg-1); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.005em;}
+  .lcard .role { font-size: 11.5px; color: var(--fg-3); margin-top: 4px; line-height: 1.3; }
+  .lcard .foot { margin-top: 10px; display:flex; align-items:center; justify-content:space-between; }
+  .lcard .val { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-1); font-weight: 600;}
+  .lcard .next-chip { font-size: 10.5px; color: var(--fg-3); display:inline-flex; gap:4px; align-items:center;}
+  .lcard .next-chip svg { width: 11px; height: 11px; stroke-width: 1.75; }
+
+  /* Timeline */
+  .tl-wrap { flex:1; padding: 24px 40px 40px; overflow-y: auto; }
+  .tl-day { margin-bottom: 28px; }
+  .tl-day-h { position: sticky; top: 0; background: var(--surface-app); padding: 6px 0 12px; font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.015em; color: var(--fg-1); z-index: 2;}
+  .tl-day-h .sub { font-size: 11.5px; color: var(--fg-3); font-weight: 500; margin-inline-start: 8px; font-family: var(--font-ui); letter-spacing: 0;}
+  .tl-row { display:grid; grid-template-columns: 78px 40px 1fr; gap: 16px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border-subtle);}
+  .tl-row:last-child { border-bottom: 0; }
+  .tl-time { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-3); padding-top: 8px; font-variant-numeric: tabular-nums;}
+  .tl-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--surface-raised); border: 1px solid var(--border-subtle); display:grid; place-items:center; color: var(--fg-2); }
+  .tl-icon svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .tl-icon.call { background: var(--accent-tint); border-color: transparent; color: var(--accent-primary); }
+  .tl-icon.email { background: var(--apricot-300); border-color: transparent; color: var(--apricot-600); }
+  .tl-icon.note { background: var(--sage-100); border-color: transparent; color: var(--sage-500); }
+  .tl-icon.stage { background: var(--amber-100); border-color: transparent; color: var(--amber-500); }
+  .tl-body { padding-top: 6px; }
+  .tl-head { display:flex; align-items:center; gap: 10px; }
+  .tl-head .lead-av { width: 22px; height:22px; font-size: 10px; }
+  .tl-head .n { font-weight: 600; font-size: 13px; color: var(--fg-1); cursor:pointer; letter-spacing: -0.005em;}
+  .tl-head .n:hover { color: var(--accent-primary); }
+  .tl-head .act { font-size: 12.5px; color: var(--fg-2); }
+  .tl-det { margin-top: 4px; font-family: var(--font-serif); font-size: 14.5px; color: var(--fg-2); line-height: 1.5; }
+
+  /* Detail page (full) */
+  .ldp { flex:1; overflow-y: auto; }
+  .ldp-top { padding: 24px 40px 0; display:flex; align-items:center; gap: 10px; }
+  .ldp-back { display:inline-flex; align-items:center; gap: 6px; padding: 5px 10px; border-radius: 8px; font-size: 12.5px; color: var(--fg-2); cursor:pointer; background:transparent; border:0;}
+  .ldp-back:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .ldp-back svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .ldp-top .crumb-sep { color: var(--fg-4); }
+  .ldp-top .crumb-cur { font-size: 12.5px; color: var(--fg-2); }
+  .ldp-hero { padding: 20px 40px 24px; display:flex; align-items:flex-start; gap: 20px; border-bottom: 1px solid var(--border-subtle);}
+  .ldp-hero .big-av { width: 72px; height: 72px; border-radius: 50%; color: white; font-size: 26px; font-weight: 600; display:grid; place-items:center; flex:none;}
+  .ldp-hero .info { flex: 1; min-width: 0; }
+  .ldp-hero h1 { margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.018em;}
+  .ldp-hero .role { font-size: 13.5px; color: var(--fg-3); margin-top: 4px; }
+  .ldp-hero .contact-row { margin-top: 10px; display:flex; gap: 16px; font-size: 12.5px; color: var(--fg-2); flex-wrap: wrap; }
+  .ldp-hero .contact-row span { display:inline-flex; align-items:center; gap: 6px;}
+  .ldp-hero .contact-row svg { width: 13px; height: 13px; color: var(--fg-3); stroke-width: 1.75; }
+  .ldp-hero .cta { display:flex; gap: 8px; align-items:flex-start; }
+  .ldp-stage-bar { padding: 0 40px; margin-top: 16px;}
+  .stage-bar { display:flex; gap: 6px; }
+  .stage-step { flex:1; padding: 8px 12px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-3); background: var(--surface-2); border: 1px solid var(--border-subtle); display:flex; flex-direction: column; gap: 2px; cursor:pointer; transition: background .15s; position:relative;}
+  .stage-step:hover { background: var(--surface-hover); }
+  .stage-step.done { background: color-mix(in oklch, var(--sage-500) 12%, var(--surface-raised)); border-color: color-mix(in oklch, var(--sage-500) 30%, transparent); color: var(--sage-500); }
+  .stage-step.current { background: var(--accent-primary); border-color: transparent; color: var(--fg-on-accent); box-shadow: var(--shadow-2);}
+  .stage-step .sm { font-size: 10.5px; font-weight: 500; color: inherit; opacity: 0.75; text-transform: none; letter-spacing: 0;}
+
+  .ldp-cols { display:grid; grid-template-columns: 1.4fr 1fr; gap: 28px; padding: 28px 40px 40px; }
+  .ldp-card { background: var(--surface-raised); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--shadow-1);}
+  .ldp-card h3 { margin: 0 0 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); display:flex; align-items:center; gap:8px;}
+  .ldp-card h3 .count { color: var(--fg-3); font-weight: 500; }
+  .ldp-card h3 .add { margin-inline-start: auto; color: var(--fg-3); cursor:pointer; padding: 2px 6px; border-radius: 6px; font-size: 10.5px; font-weight: 500; letter-spacing: 0; text-transform: none; background: transparent; border: 0; display:inline-flex; align-items:center; gap: 4px;}
+  .ldp-card h3 .add:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .ldp-card h3 .add svg { width: 12px; height: 12px; }
+
+  .tasks { display:flex; flex-direction:column; gap: 2px; }
+  .task-row { display:flex; align-items:flex-start; gap: 10px; padding: 8px 6px; border-radius: 8px; cursor:pointer; }
+  .task-row:hover { background: var(--surface-hover); }
+  .task-chk { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--border-strong); flex:none; margin-top: 2px; display:grid; place-items:center; transition: background .15s, border-color .15s;}
+  .task-row.done .task-chk { background: var(--sage-500); border-color: var(--sage-500); }
+  .task-row.done .task-chk::after { content:""; width: 8px; height: 4px; border-inline-start: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translate(1px,-1px); }
+  .task-body { flex: 1; }
+  .task-txt { font-size: 13px; color: var(--fg-1); line-height: 1.4; }
+  .task-row.done .task-txt { color: var(--fg-3); text-decoration: line-through; }
+  .task-meta { margin-top: 2px; font-size: 11px; color: var(--fg-3); display:flex; gap: 10px; }
+
+  .emails { display:flex; flex-direction:column; gap: 2px; }
+  .email-row { padding: 10px 12px; border-radius: 10px; cursor:pointer;}
+  .email-row:hover { background: var(--surface-hover); }
+  .email-row .e-h { display:flex; align-items:center; gap: 8px; font-size: 12.5px;}
+  .email-row .dir { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; letter-spacing: 0.02em;}
+  .email-row .dir.out { background: var(--accent-tint); color: var(--accent-primary); }
+  .email-row .dir.in { background: var(--apricot-300); color: var(--apricot-600); }
+  .email-row .subj { font-weight: 600; color: var(--fg-1); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow: ellipsis;}
+  .email-row .when { color: var(--fg-3); font-size: 11.5px;}
+  .email-row .pv { margin-top: 4px; font-size: 12.5px; color: var(--fg-3); line-height:1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow:hidden;}
+
+  .files { display:flex; flex-direction:column; gap: 4px; }
+  .file-row { display:flex; align-items:center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor:pointer;}
+  .file-row:hover { background: var(--surface-hover); }
+  .file-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--surface-2); display:grid; place-items:center; color: var(--fg-2); flex:none;}
+  .file-icon.pdf { background: var(--persimmon-100); color: var(--persimmon-500); }
+  .file-icon.doc { background: var(--accent-tint); color: var(--accent-primary); }
+  .file-icon.img { background: var(--sage-100); color: var(--sage-500); }
+  .file-icon svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .file-row .fn { font-size: 13px; color: var(--fg-1); font-weight: 500; }
+  .file-row .fm { font-size: 11px; color: var(--fg-3); margin-top: 1px; }
+
+  .composer { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;}
+  .composer textarea { width: 100%; border: 0; background: transparent; outline: 0; resize: none; font-family: var(--font-serif); font-size: 14px; color: var(--fg-1); line-height: 1.5; min-height: 40px;}
+  .composer textarea::placeholder { color: var(--fg-4); font-style: italic; }
+  .composer .c-actions { display:flex; align-items:center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-subtle);}
+  .composer .c-actions .iconbtn { width: 26px; height: 26px; border-radius: 6px; color: var(--fg-3);}
+  .composer .c-actions .post { margin-inline-start: auto; padding: 4px 12px; font-size: 12px; }
+
+  /* Modal — New lead */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); z-index: 95; display:none; align-items:center; justify-content: center; padding: 24px;}
+  .modal-bg.on { display:flex; }
+  .modal { width: 560px; max-width: 100%; background: var(--surface-app); border: 1px solid var(--border-subtle); border-radius: 16px; box-shadow: var(--shadow-4); overflow: hidden;}
+  .modal-h { padding: 18px 22px 14px; display:flex; align-items:center; gap: 10px; border-bottom: 1px solid var(--border-subtle);}
+  .modal-h h2 { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 600; letter-spacing: -0.015em;}
+  .modal-body { padding: 18px 22px; max-height: 70vh; overflow-y:auto;}
+  .modal-foot { padding: 14px 22px; border-top: 1px solid var(--border-subtle); display:flex; gap: 8px; justify-content: flex-end; background: var(--surface-1);}
+  .ai-paste { padding: 14px; border-radius: 12px; background: color-mix(in oklch, var(--accent-primary) 7%, var(--surface-raised)); border: 1px dashed color-mix(in oklch, var(--accent-primary) 40%, transparent); margin-bottom: 18px; display:flex; align-items: flex-start; gap: 12px;}
+  .ai-paste .ai-ic { width: 32px; height: 32px; border-radius: 8px; background: var(--accent-primary); color: var(--fg-on-accent); display:grid; place-items:center; flex:none;}
+  .ai-paste .ai-ic svg { width: 15px; height: 15px; stroke-width: 1.75; }
+  .ai-paste h4 { margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--fg-1);}
+  .ai-paste p { margin: 0 0 8px; font-size: 12.5px; color: var(--fg-3); line-height: 1.5;}
+  .ai-paste textarea { width: 100%; background: var(--surface-raised); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); resize: vertical; min-height: 54px; outline: 0;}
+  .ai-paste textarea:focus { border-color: var(--accent-primary); }
+  .form-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .field { display:flex; flex-direction:column; gap: 5px;}
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3);}
+  .field input, .field select, .field textarea { height: 34px; padding: 0 11px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--surface-raised); color: var(--fg-1); font-size: 13px; font-family: var(--font-ui); outline: 0;}
+  .field textarea { height: auto; padding: 9px 11px; resize: vertical; min-height: 60px; line-height: 1.5;}
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-tint);}
+  .stage-picker { display:flex; gap: 4px; flex-wrap: wrap; }
+  .stage-pick { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 11.5px; font-weight: 500; color: var(--fg-2); background: var(--surface-raised); cursor:pointer; display:inline-flex; align-items:center; gap: 5px;}
+  .stage-pick:hover { background: var(--surface-hover); color: var(--fg-1); }
+  .stage-pick.on { background: var(--accent-primary); border-color: transparent; color: var(--fg-on-accent); }
+  .stage-pick .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.9;}
+
+  /* Row action overlay on table */
+  .leads-table tr { position: relative; }
+  .lead-row-actions { position: absolute; inset-inline-end: 8px; top: 50%; transform: translateY(-50%); display:none; gap:4px; background: var(--surface-raised); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 3px; box-shadow: var(--shadow-2);}
+  .leads-table tr:hover .lead-row-actions { display:flex; }
+  .lead-row-actions .iconbtn { width: 26px; height: 26px; border-radius: 6px; color: var(--fg-2); }
+  .lead-row-actions .iconbtn:hover { background: var(--surface-hover); color: var(--fg-1); }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--fg-1); color: var(--surface-app); padding: 10px 18px; border-radius: 9999px; font-size: 12.5px; font-weight: 500; z-index: 300; opacity: 0; transition: all .3s var(--spring-gentle); pointer-events: none; box-shadow: var(--shadow-3);}
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- the single app frame -->
+<div class="app-frame" id="app">
+  <!-- SIDEBAR (shared) -->
+  <aside class="sb">
+    <div class="sb-brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <div class="title">Atlas</div>
+        <div class="sub" id="workspaceSub">Private workspace</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-item" data-nav="inbox"><i data-lucide="inbox"></i><span data-s="inbox">Inbox</span><span class="badge">12</span></div>
+      <div class="sb-item active" data-nav="board"><i data-lucide="layout-grid"></i><span data-s="board">Boards</span></div>
+      <div class="sb-item" data-nav="notes"><i data-lucide="notebook-pen"></i><span data-s="notes">Notes</span></div>
+      <div class="sb-item" data-nav="leads"><i data-lucide="users-round"></i><span data-s="leads">Leads</span><span class="badge">24</span></div>
+      <div class="sb-item" data-nav="graph"><i data-lucide="share-2"></i><span data-s="graph">Graph</span></div>
+    </nav>
+
+    <div class="sb-section">
+      <div class="sb-section-h"><span>Projects</span><span class="plus"><i data-lucide="plus" style="width:12px;height:12px;"></i></span></div>
+      <div class="sb-proj"><span class="sb-dot" style="background:var(--persimmon-500)"></span><span>Atlas app</span></div>
+      <div class="sb-proj"><span class="sb-dot" style="background:var(--sage-500)"></span><span>Apartment</span></div>
+      <div class="sb-proj"><span class="sb-dot" style="background:var(--indigo-500)"></span><span>Book club</span></div>
+      <div class="sb-proj"><span class="sb-dot" style="background:var(--apricot-500)"></span><span>Consulting</span></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-h"><span>Pinned</span></div>
+      <div class="sb-proj" style="padding-inline-start:10px;"><i data-lucide="file-text" style="width:14px;height:14px;color:var(--fg-3)"></i><span>Weekend plans</span></div>
+      <div class="sb-proj" style="padding-inline-start:10px;"><i data-lucide="file-text" style="width:14px;height:14px;color:var(--fg-3)"></i><span>Reading list</span></div>
+    </div>
+
+    <div class="sb-foot">
+      <div class="sb-item"><i data-lucide="settings"></i><span>Settings</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- TOPBAR (shared) -->
+    <header class="topbar">
+      <div class="crumb" id="crumb">
+        <span>Atlas</span><span class="sep">/</span><span class="last">Boards</span>
+      </div>
+      <div class="search" onclick="openCmd()">
+        <i data-lucide="search"></i>
+        <span>Search or jump to…</span>
+        <span style="margin-inline-start:auto;" class="kbd">⌘K</span>
+      </div>
+      <div class="tb-right">
+        <button class="iconbtn" onclick="toggleDir()" title="Toggle RTL"><i data-lucide="languages"></i></button>
+        <button class="iconbtn" onclick="toggleTheme()" title="Toggle theme"><i data-lucide="moon" id="themeIcon"></i></button>
+        <button class="ask-btn" onclick="openCmd()"><i data-lucide="sparkles"></i><span>Ask</span></button>
+        <div class="avatar">N</div>
+      </div>
+    </header>
+
+    <!-- SCREEN BODIES -->
+    <div class="body atlas-board-scroll" id="body">
+
+      <!-- ======= BOARD SCREEN ======= -->
+      <section class="screen" data-screen="board">
+        <div class="ph">
+          <div>
+            <div class="eyebrow">Atlas app · project board</div>
+            <h1>Ship v0.2</h1>
+            <div class="sub">12 active, 3 in review · last update 4m ago</div>
+          </div>
+          <div class="ph-actions">
+            <button class="btn ghost"><i data-lucide="filter"></i>Filter</button>
+            <button class="btn secondary"><i data-lucide="sliders-horizontal"></i>Group</button>
+            <button class="btn primary"><i data-lucide="plus"></i>New card</button>
+          </div>
+        </div>
+
+        <div class="board-wrap">
+          <div class="board-cols atlas-board-scroll" id="boardCols"></div>
+        </div>
+      </section>
+
+      <!-- ======= NOTES SCREEN ======= -->
+      <section class="screen" data-screen="notes" style="display:none;">
+        <div class="notes-layout">
+          <aside class="notes-list">
+            <div class="notes-list-h">
+              <span class="t">All notes · 42</span>
+              <button class="iconbtn" title="New"><i data-lucide="plus"></i></button>
+            </div>
+            <div id="notesList"></div>
+          </aside>
+
+          <div class="editor atlas-board-scroll">
+            <div class="editor-inner">
+              <h1 class="read" id="noteTitle">On patience and compound things</h1>
+              <div class="read-meta">
+                <span>Edited 2 days ago</span>
+                <span style="color:var(--fg-4)">·</span>
+                <span>3 backlinks</span>
+                <span style="color:var(--fg-4)">·</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="link" style="width:12px;height:12px;"></i>4 links out</span>
+              </div>
+
+              <p class="read">Everything good is slow. The garden we planted in March looks nothing like the one in the photograph — not yet. But there's a moment, usually in late June, when it suddenly resembles what we imagined, and then improves on it.</p>
+
+              <p class="read">Yesterday <span class="mention" onclick="openLeadDrawer('maya')">@Maya Greenberg</span> asked about the retainer proposal. I linked her to <a class="wikilink">[[Proposal — Q2 partnership]]</a> and said we'd circle back Monday. See also the conversation with <span class="mention" onclick="openLeadDrawer('david')">@David Liu</span> from last Tuesday — same pattern, different shape.</p>
+
+              <h2 class="read">What I keep forgetting</h2>
+              <ul class="read">
+                <li>The work you do when nobody is watching is the work.</li>
+                <li>Most "urgent" emails can wait a day; most actually wait a week.</li>
+                <li>When in doubt, <a class="wikilink">[[Default to writing it down]]</a>.</li>
+              </ul>
+
+              <blockquote class="read">"You are not obliged to complete the work, but neither are you free to desist from it." — Pirkei Avot 2:16</blockquote>
+
+              <p class="read">Tomorrow: review <a class="wikilink">[[Sprint plan — week 17]]</a> and reach out to <span class="mention" onclick="openLeadDrawer('noa')">@Noa Ben-Ari</span> about the integration spec.</p>
+            </div>
+          </div>
+
+          <aside class="backlinks atlas-board-scroll">
+            <div class="bl-title">Backlinks · 3</div>
+            <div class="bl-item"><div class="bt">Weekly review — week 16</div><div class="bs">…revisited "On patience and compound things" this morning. Still true. The June garden analogy landed…</div></div>
+            <div class="bl-item"><div class="bt">Conversation with Maya</div><div class="bs">…sent her the link to the patience note after she mentioned feeling stuck on Q2 strategy…</div></div>
+            <div class="bl-item"><div class="bt">Quarterly reflection</div><div class="bs">…the pattern from "On patience" keeps showing up: compounding things look identical to failure until they don't…</div></div>
+
+            <div class="bl-title" style="margin-top:24px;">Mentioned</div>
+            <div class="bl-item" onclick="openLeadDrawer('maya')"><div class="bt" style="display:flex;align-items:center;gap:8px;"><span class="lead-av" style="background:#FF8A3D;width:22px;height:22px;font-size:10px;">MG</span>Maya Greenberg</div><div class="bs">Co-founder, Ferngrove Studio</div></div>
+            <div class="bl-item" onclick="openLeadDrawer('david')"><div class="bt" style="display:flex;align-items:center;gap:8px;"><span class="lead-av" style="background:#3D49F5;width:22px;height:22px;font-size:10px;">DL</span>David Liu</div><div class="bs">Product lead, Rowan</div></div>
+            <div class="bl-item" onclick="openLeadDrawer('noa')"><div class="bt" style="display:flex;align-items:center;gap:8px;"><span class="lead-av" style="background:#4F9868;width:22px;height:22px;font-size:10px;">NB</span>Noa Ben-Ari</div><div class="bs">Engineer, Meridian</div></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ======= INBOX SCREEN ======= -->
+      <section class="screen" data-screen="inbox" style="display:none;">
+        <div class="inbox-wrap">
+          <div class="inbox-head">
+            <div>
+              <div class="eyebrow" style="color:var(--fg-3); margin-bottom:8px;">Tuesday · inbox</div>
+              <h1 style="margin:0; font-family:var(--font-display); font-size:36px; font-weight:600; letter-spacing:-0.02em;">Brain dump</h1>
+              <p style="margin:8px 0 0; font-size:14px; color:var(--fg-3);">7 things to organize. No hurry.</p>
+            </div>
+            <button class="inbox-pill" onclick="openQuickCapture()"><i data-lucide="sparkles"></i>Quick capture<span class="kbd">⌘N</span></button>
+          </div>
+
+          <div class="inbox-filters">
+            <div class="inbox-filter active">All · 7</div>
+            <div class="inbox-filter">Text</div>
+            <div class="inbox-filter">Voice</div>
+            <div class="inbox-filter">Links</div>
+            <div class="inbox-filter">Files</div>
+          </div>
+
+          <div class="inbox-group">
+            <div class="inbox-group-h">Today</div>
+            <div class="ix-item">
+              <div class="ix-kind text"><i data-lucide="file-text"></i></div>
+              <div class="ix-body">
+                <div class="ix-when">11:24 <span class="dot-sep">·</span> typed</div>
+                <div class="ix-text">Follow up with Maya about the retainer — she mentioned Q2 timing in yesterday's call. Worth pinging before she books her trip.</div>
+              </div>
+              <div class="ix-actions">
+                <button class="primary"><i data-lucide="file-text"></i>Note</button>
+                <button><i data-lucide="archive"></i>Archive</button>
+                <button><i data-lucide="trash-2"></i></button>
+              </div>
+            </div>
+            <div class="ix-item">
+              <div class="ix-kind voice"><i data-lucide="mic"></i></div>
+              <div class="ix-body">
+                <div class="ix-when">09:47 <span class="dot-sep">·</span> voice · 1:14</div>
+                <div class="ix-text">Thinking about the patience note — there's something about how compounding looks identical to failure until it suddenly doesn't. Maybe a whole essay here, not just a paragraph.</div>
+              </div>
+              <div class="ix-actions">
+                <button class="primary"><i data-lucide="file-text"></i>Note</button>
+                <button><i data-lucide="archive"></i>Archive</button>
+                <button><i data-lucide="trash-2"></i></button>
+              </div>
+            </div>
+            <div class="ix-item">
+              <div class="ix-kind url"><i data-lucide="link-2"></i></div>
+              <div class="ix-body">
+                <div class="ix-when">08:02 <span class="dot-sep">·</span> shared link</div>
+                <div class="ix-text" style="font-family:var(--font-ui);font-size:14px;"><strong style="color:var(--fg-1);">Design systems at small companies</strong><br/><span style="color:var(--fg-3);font-size:12.5px;">rauno.me · how a two-person team keeps a design system alive without overhead</span></div>
+              </div>
+              <div class="ix-actions">
+                <button class="primary"><i data-lucide="file-text"></i>Note</button>
+                <button><i data-lucide="archive"></i>Archive</button>
+                <button><i data-lucide="trash-2"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="inbox-group">
+            <div class="inbox-group-h">Yesterday</div>
+            <div class="ix-item">
+              <div class="ix-kind image"><i data-lucide="image"></i></div>
+              <div class="ix-body">
+                <div class="ix-when">18:33 <span class="dot-sep">·</span> image · IMG_2841.HEIC</div>
+                <div class="ix-text" style="font-style:italic; color:var(--fg-3);">Napkin sketch — kitchen layout v3, moved the pantry left</div>
+              </div>
+              <div class="ix-actions">
+                <button class="primary"><i data-lucide="file-text"></i>Note</button>
+                <button><i data-lucide="archive"></i>Archive</button>
+                <button><i data-lucide="trash-2"></i></button>
+              </div>
+            </div>
+            <div class="ix-item">
+              <div class="ix-kind file"><i data-lucide="file"></i></div>
+              <div class="ix-body">
+                <div class="ix-when">14:15 <span class="dot-sep">·</span> file · partnership-draft.pdf</div>
+                <div class="ix-text" style="font-family:var(--font-ui);font-size:14px;color:var(--fg-2);">Partnership draft from David — 3 pages, tracked changes.</div>
+              </div>
+              <div class="ix-actions">
+                <button class="primary"><i data-lucide="file-text"></i>Note</button>
+                <button><i data-lucide="archive"></i>Archive</button>
+                <button><i data-lucide="trash-2"></i></button>
+              </div>
+            </div>
+            <div class="ix-item">
+              <div class="ix-kind text"><i data-lucide="file-text"></i></div>
+              <div class="ix-body">
+                <div class="ix-when">10:08 <span class="dot-sep">·</span> typed</div>
+                <div class="ix-text">Books: Le Guin — The Dispossessed. Stegner — Crossing to Safety. Also maybe revisit Annie Dillard.</div>
+              </div>
+              <div class="ix-actions">
+                <button class="primary"><i data-lucide="file-text"></i>Note</button>
+                <button><i data-lucide="archive"></i>Archive</button>
+                <button><i data-lucide="trash-2"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= GRAPH SCREEN ======= -->
+      <section class="screen" data-screen="graph" style="display:none;">
+        <div class="ph">
+          <div>
+            <div class="eyebrow">knowledge map</div>
+            <h1>Graph</h1>
+            <div class="sub">42 notes · 118 links · 6 clusters</div>
+          </div>
+          <div class="ph-actions">
+            <button class="btn ghost"><i data-lucide="filter"></i>Filter</button>
+            <button class="btn secondary"><i data-lucide="maximize-2"></i>Focus</button>
+          </div>
+        </div>
+
+        <div class="graph-stage">
+          <div class="graph-toolbar">
+            <button class="iconbtn" title="Zoom in"><i data-lucide="plus"></i></button>
+            <button class="iconbtn" title="Zoom out"><i data-lucide="minus"></i></button>
+            <button class="iconbtn" title="Fit"><i data-lucide="maximize"></i></button>
+            <div style="width:1px;background:var(--border-subtle);margin:4px 2px;"></div>
+            <button class="iconbtn" title="Settings"><i data-lucide="sliders-horizontal"></i></button>
+          </div>
+
+          <svg id="graphSvg" width="100%" height="100%" viewBox="0 0 800 560" preserveAspectRatio="xMidYMid meet" style="display:block;">
+            <defs>
+              <radialGradient id="gNode" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0.4"/>
+              </radialGradient>
+            </defs>
+            <!-- edges + nodes drawn at runtime -->
+          </svg>
+
+          <div class="graph-legend">
+            <div class="item"><span class="sw" style="background:var(--accent-primary)"></span>Notes</div>
+            <div class="item"><span class="sw" style="background:var(--apricot-500)"></span>Leads</div>
+            <div class="item"><span class="sw" style="background:var(--sage-500)"></span>Tasks</div>
+          </div>
+
+          <div class="graph-side">
+            <div class="lbl">selected</div>
+            <h4>On patience and compound things</h4>
+            <div class="stats"><span>3 backlinks</span><span>4 out</span><span>2 mentions</span></div>
+            <div style="height:1px;background:var(--border-subtle);margin:8px -16px 12px;"></div>
+            <div class="lbl" style="margin-bottom:8px;">connected</div>
+            <div class="mini"><span class="d"></span>Weekly review — week 16</div>
+            <div class="mini"><span class="d"></span>Proposal — Q2 partnership</div>
+            <div class="mini"><span class="d" style="background:var(--apricot-500)"></span>Maya Greenberg</div>
+            <div class="mini"><span class="d"></span>Default to writing it down</div>
+            <div class="mini"><span class="d" style="background:var(--apricot-500)"></span>David Liu</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= LEADS SCREEN ======= -->
+      <section class="screen" data-screen="leads" style="display:none;">
+        <!-- LEADS HUB (stats + tabs + views) -->
+        <div class="leads-wrap" id="leadsHub">
+          <div class="leads-topbar">
+            <div>
+              <div class="eyebrow">relationships · pipeline</div>
+              <h1 style="margin:0; font-family:var(--font-display); font-size:32px; font-weight:600; letter-spacing:-0.02em;">Leads</h1>
+              <div class="leads-stats">
+                <div class="stat"><div class="sn">24</div><div class="sl">Active</div><div class="sc">+3 this week</div></div>
+                <div class="stat"><div class="sn">$148k</div><div class="sl">Pipeline value</div><div class="sc">+$22k this week</div></div>
+                <div class="stat"><div class="sn">7</div><div class="sl">Need follow-up</div><div class="sc" style="color:var(--apricot-600);">3 overdue</div></div>
+                <div class="stat"><div class="sn">68%</div><div class="sl">Close rate · 90d</div></div>
+              </div>
+            </div>
+            <div class="ph-actions">
+              <button class="btn secondary"><i data-lucide="download"></i>Export</button>
+              <button class="btn primary" onclick="openNewLead()"><i data-lucide="plus"></i>New lead</button>
+            </div>
+          </div>
+
+          <div class="leads-toolbar">
+            <div class="lead-tabs" id="leadTabs">
+              <div class="lead-tab active" data-lview="table"><i data-lucide="list"></i>Table</div>
+              <div class="lead-tab" data-lview="pipeline"><i data-lucide="layout-grid"></i>Pipeline</div>
+              <div class="lead-tab" data-lview="timeline"><i data-lucide="calendar-days"></i>Timeline</div>
+            </div>
+            <div style="flex:1;"></div>
+            <div class="search" style="max-width:260px; margin:0;">
+              <i data-lucide="search"></i>
+              <span>Filter leads…</span>
+            </div>
+            <button class="btn ghost"><i data-lucide="filter"></i>Stage</button>
+            <button class="btn ghost"><i data-lucide="sliders-horizontal"></i>Sort</button>
+          </div>
+
+          <!-- TABLE VIEW -->
+          <div class="sub-screen on" data-lview="table" style="flex:1; min-height:0;">
+            <div class="leads-table-wrap">
+              <table class="leads-table">
+                <thead>
+                  <tr>
+                    <th style="width: 28%;">Lead</th>
+                    <th style="width: 14%;">Stage</th>
+                    <th style="width: 14%;">Value</th>
+                    <th style="width: 16%;">Last touch</th>
+                    <th style="width: 13%;">Next step</th>
+                    <th style="width: 15%;">Tags</th>
+                  </tr>
+                </thead>
+                <tbody id="leadsTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PIPELINE VIEW -->
+          <div class="sub-screen" data-lview="pipeline">
+            <div class="pipe-wrap">
+              <div class="pipe-cols atlas-board-scroll" id="pipeCols"></div>
+            </div>
+          </div>
+
+          <!-- TIMELINE VIEW -->
+          <div class="sub-screen" data-lview="timeline">
+            <div class="tl-wrap atlas-board-scroll" id="tlWrap"></div>
+          </div>
+        </div>
+
+        <!-- LEAD DETAIL PAGE (full screen, replaces hub) -->
+        <div class="ldp" id="leadDetailPage" style="display:none;">
+          <div class="ldp-top">
+            <button class="ldp-back" onclick="closeLeadPage()"><i data-lucide="arrow-left"></i>Leads</button>
+            <span class="crumb-sep">/</span>
+            <span class="crumb-cur" id="ldpCrumb">Maya Greenberg</span>
+            <div style="margin-inline-start:auto; display:flex; gap: 6px;">
+              <button class="iconbtn" title="Previous"><i data-lucide="chevron-up"></i></button>
+              <button class="iconbtn" title="Next"><i data-lucide="chevron-down"></i></button>
+              <button class="iconbtn" title="More"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="ldp-hero">
+            <div class="big-av" id="ldpAv" style="background:#FF8A3D;">MG</div>
+            <div class="info">
+              <h1 id="ldpName">Maya Greenberg</h1>
+              <div class="role" id="ldpRole">Co-founder · Ferngrove Studio</div>
+              <div class="contact-row">
+                <span id="ldpEmail"><i data-lucide="mail"></i>maya@ferngrove.co</span>
+                <span id="ldpPhone"><i data-lucide="phone"></i>+1 415 552 0198</span>
+                <span><i data-lucide="map-pin"></i>Oakland, CA</span>
+                <span><i data-lucide="link"></i>in/mayagreenberg</span>
+              </div>
+            </div>
+            <div class="cta">
+              <button class="btn ghost"><i data-lucide="mail"></i>Email</button>
+              <button class="btn secondary"><i data-lucide="calendar-plus"></i>Schedule</button>
+              <button class="btn primary"><i data-lucide="sparkles"></i>Draft follow-up</button>
+            </div>
+          </div>
+
+          <div class="ldp-stage-bar">
+            <div class="stage-bar" id="ldpStageBar"></div>
+          </div>
+
+          <div class="ldp-cols">
+            <div>
+              <!-- Activity / composer -->
+              <div class="ldp-card">
+                <h3>Add update <button class="add"><i data-lucide="sparkles"></i>AI summarize</button></h3>
+                <div class="composer">
+                  <textarea placeholder="What happened? (logs a note · @mention to link people)"></textarea>
+                  <div class="c-actions">
+                    <button class="iconbtn" title="Attach"><i data-lucide="paperclip"></i></button>
+                    <button class="iconbtn" title="Tag"><i data-lucide="hash"></i></button>
+                    <button class="iconbtn" title="Record"><i data-lucide="mic"></i></button>
+                    <button class="btn primary post">Post</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ldp-card">
+                <h3>Activity <span class="count">· 14</span><button class="add">View all</button></h3>
+                <div class="activity" id="ldpActivity"></div>
+              </div>
+
+              <div class="ldp-card">
+                <h3>Emails <span class="count">· 6</span><button class="add"><i data-lucide="plus"></i>Compose</button></h3>
+                <div class="emails">
+                  <div class="email-row">
+                    <div class="e-h"><span class="dir out">SENT</span><span class="subj">Revised proposal — Q2 scope (v2)</span><span class="when">Apr 17</span></div>
+                    <div class="pv">Hi Maya — attaching v2 with the three-phase split you mentioned. Pricing holds at $24k. Let me know if Monday works for a 20-min call…</div>
+                  </div>
+                  <div class="email-row">
+                    <div class="e-h"><span class="dir in">RCVD</span><span class="subj">Re: Intro — Ferngrove × Atlas</span><span class="when">Apr 15</span></div>
+                    <div class="pv">Sounds great — happy to chat. Thursdays and Fridays are best for me this month. Also looping in Jules who leads ops…</div>
+                  </div>
+                  <div class="email-row">
+                    <div class="e-h"><span class="dir out">SENT</span><span class="subj">Intro — Ferngrove × Atlas</span><span class="when">Apr 12</span></div>
+                    <div class="pv">David suggested we connect. I've been following Ferngrove's work for a while and I think there's a clean overlap on the Q2 roadmap…</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ldp-card">
+                <h3>Files <span class="count">· 4</span><button class="add"><i data-lucide="upload"></i>Upload</button></h3>
+                <div class="files">
+                  <div class="file-row"><div class="file-icon pdf"><i data-lucide="file-text"></i></div><div><div class="fn">proposal-v2.pdf</div><div class="fm">2.1 MB · uploaded Apr 17</div></div></div>
+                  <div class="file-row"><div class="file-icon doc"><i data-lucide="file-text"></i></div><div><div class="fn">Q2-scope-notes.md</div><div class="fm">8 KB · edited 2d ago</div></div></div>
+                  <div class="file-row"><div class="file-icon img"><i data-lucide="image"></i></div><div><div class="fn">whiteboard-kickoff.heic</div><div class="fm">4.7 MB · Apr 14</div></div></div>
+                  <div class="file-row"><div class="file-icon pdf"><i data-lucide="file-text"></i></div><div><div class="fn">ferngrove-mutual-nda.pdf</div><div class="fm">420 KB · Apr 10</div></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="ldp-card">
+                <h3>Details</h3>
+                <div class="ld-meta" style="background:transparent; border:0; padding:0; margin:0;">
+                  <div><div class="k">Stage</div><div class="v"><span class="stage-pill stage-proposal"><span class="dot"></span>Proposal</span></div></div>
+                  <div><div class="k">Value</div><div class="v" style="font-family:var(--font-mono)">$24,000</div></div>
+                  <div><div class="k">Source</div><div class="v">Referral · David Liu</div></div>
+                  <div><div class="k">Owner</div><div class="v">Noa</div></div>
+                  <div><div class="k">Created</div><div class="v">Apr 3, 2025</div></div>
+                  <div><div class="k">Last touch</div><div class="v">Today · 11:24</div></div>
+                </div>
+              </div>
+
+              <div class="ldp-card">
+                <h3>Next steps <span class="count">· 3</span><button class="add"><i data-lucide="plus"></i>Add</button></h3>
+                <div class="tasks">
+                  <div class="task-row" onclick="this.classList.toggle('done')"><div class="task-chk"></div><div class="task-body"><div class="task-txt">Send revised proposal with three-phase split</div><div class="task-meta"><span>Due Mon</span><span>· Noa</span></div></div></div>
+                  <div class="task-row" onclick="this.classList.toggle('done')"><div class="task-chk"></div><div class="task-body"><div class="task-txt">Schedule kickoff call once signed</div><div class="task-meta"><span>Due next week</span></div></div></div>
+                  <div class="task-row done" onclick="this.classList.toggle('done')"><div class="task-chk"></div><div class="task-body"><div class="task-txt">Send mutual NDA</div><div class="task-meta"><span>Apr 10</span></div></div></div>
+                </div>
+              </div>
+
+              <div class="ldp-card">
+                <h3>Linked notes <span class="count">· 3</span></h3>
+                <div class="linked-notes">
+                  <div class="linked-note" onclick="goToNotes()"><i data-lucide="file-text"></i>Proposal — Q2 partnership<span class="m">2d</span></div>
+                  <div class="linked-note" onclick="goToNotes()"><i data-lucide="file-text"></i>Call notes — Mar 14<span class="m">5w</span></div>
+                  <div class="linked-note" onclick="goToNotes()"><i data-lucide="file-text"></i>On patience and compound things<span class="m">2d</span></div>
+                </div>
+              </div>
+
+              <div class="ldp-card">
+                <h3>Tags</h3>
+                <div class="lead-tag-row">
+                  <span class="mini-tag">consulting</span>
+                  <span class="mini-tag">q2</span>
+                  <span class="mini-tag">referral</span>
+                  <span class="mini-tag">warm</span>
+                  <span class="mini-tag" style="background:transparent;border:1px dashed var(--border-subtle);cursor:pointer;">+ add</span>
+                </div>
+              </div>
+
+              <div class="ldp-card">
+                <h3>People <span class="count">· 2</span></h3>
+                <div class="linked-notes">
+                  <div class="linked-note"><span class="lead-av" style="background:#3D49F5;width:22px;height:22px;font-size:10px;">DL</span>David Liu<span class="m">referrer</span></div>
+                  <div class="linked-note"><span class="lead-av" style="background:#FF8A3D;width:22px;height:22px;font-size:10px;">JS</span>Jules Sun<span class="m">ops, Ferngrove</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Lead modal -->
+        <div class="modal-bg" id="newLeadBg" onclick="if(event.target===this)closeNewLead()">
+          <div class="modal" role="dialog" aria-labelledby="nlTitle">
+            <div class="modal-h">
+              <div class="ai-ic" style="width:28px;height:28px;border-radius:8px;background:var(--accent-primary);color:var(--fg-on-accent);display:grid;place-items:center;"><i data-lucide="user-plus" style="width:14px;height:14px;"></i></div>
+              <h2 id="nlTitle">New lead</h2>
+              <button class="iconbtn" style="margin-inline-start:auto;" onclick="closeNewLead()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+              <div class="ai-paste">
+                <div class="ai-ic"><i data-lucide="sparkles"></i></div>
+                <div style="flex:1;">
+                  <h4>Paste anything</h4>
+                  <p>Signature, business card OCR, LinkedIn URL — Atlas will fill the fields.</p>
+                  <textarea placeholder="Maya Greenberg&#10;Co-founder, Ferngrove Studio&#10;maya@ferngrove.co · +1 415 552 0198"></textarea>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label>Name</label><input placeholder="Full name" /></div>
+                <div class="field"><label>Role · company</label><input placeholder="Co-founder · Ferngrove" /></div>
+                <div class="field"><label>Email</label><input type="email" placeholder="maya@ferngrove.co" /></div>
+                <div class="field"><label>Phone</label><input placeholder="+1 415…" /></div>
+                <div class="field"><label>Source</label>
+                  <select><option>Referral</option><option>Inbound</option><option>Event</option><option>Outbound</option><option>Other</option></select>
+                </div>
+                <div class="field"><label>Value (est.)</label><input placeholder="$24,000" /></div>
+                <div class="field full"><label>Stage</label>
+                  <div class="stage-picker">
+                    <div class="stage-pick on"><span class="dot"></span>New</div>
+                    <div class="stage-pick"><span class="dot"></span>Contacted</div>
+                    <div class="stage-pick"><span class="dot"></span>Qualified</div>
+                    <div class="stage-pick"><span class="dot"></span>Proposal</div>
+                    <div class="stage-pick"><span class="dot"></span>Won</div>
+                    <div class="stage-pick"><span class="dot"></span>Lost</div>
+                  </div>
+                </div>
+                <div class="field full"><label>First note</label><textarea placeholder="Where you met, what they need, anything worth remembering…"></textarea></div>
+              </div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn ghost" onclick="closeNewLead()">Cancel</button>
+              <button class="btn secondary" onclick="closeNewLead()">Save & add another</button>
+              <button class="btn primary" onclick="saveNewLead()"><i data-lucide="check"></i>Save lead</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- lead drawer (quick-peek) -->
+        <div class="lead-drawer-bg" id="leadBg" onclick="closeLeadDrawer()"></div>
+        <div class="lead-drawer" id="leadDrawer">
+          <div class="ld-head">
+            <div class="lead-av" id="ldAv" style="background:#FF8A3D; width:32px; height:32px; font-size:12px;">MG</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;" id="ldName">Maya Greenberg</div>
+              <div style="font-size:11.5px;color:var(--fg-3);" id="ldRole">Co-founder · Ferngrove Studio</div>
+            </div>
+            <button class="iconbtn close" onclick="closeLeadDrawer()"><i data-lucide="x"></i></button>
+          </div>
+          <div class="ld-body">
+            <div class="ld-hero">
+              <div class="lead-av av" id="ldHeroAv" style="background:#FF8A3D;">MG</div>
+              <div>
+                <h2 id="ldHeroName">Maya Greenberg</h2>
+                <div class="sub" id="ldHeroSub">Co-founder · Ferngrove Studio</div>
+              </div>
+              <div style="margin-inline-start:auto;">
+                <span class="stage-pill stage-proposal"><span class="dot"></span>Proposal</span>
+              </div>
+            </div>
+
+            <div class="ld-meta">
+              <div><div class="k">Email</div><div class="v">maya@ferngrove.co</div></div>
+              <div><div class="k">Phone</div><div class="v">+1 415 552 0198</div></div>
+              <div><div class="k">Value</div><div class="v" style="font-family:var(--font-mono)">$24,000</div></div>
+              <div><div class="k">Source</div><div class="v">Referral · David Liu</div></div>
+              <div><div class="k">Owner</div><div class="v">Noa</div></div>
+              <div><div class="k">Next step</div><div class="v">Send revised proposal · Mon</div></div>
+            </div>
+
+            <div class="ld-section">
+              <h3>Linked notes</h3>
+              <div class="linked-notes">
+                <div class="linked-note" onclick="goToNotes()"><i data-lucide="file-text"></i>Proposal — Q2 partnership<span class="m">2d ago</span></div>
+                <div class="linked-note" onclick="goToNotes()"><i data-lucide="file-text"></i>Call notes — Mar 14<span class="m">5w ago</span></div>
+                <div class="linked-note" onclick="goToNotes()"><i data-lucide="file-text"></i>On patience and compound things<span class="m">2d ago</span></div>
+              </div>
+            </div>
+
+            <div class="ld-section">
+              <h3>Activity</h3>
+              <div class="activity">
+                <div class="act-item"><div class="act-dot" style="color:var(--apricot-600); background:var(--apricot-300); border-color:transparent;"><i data-lucide="file-text"></i></div>
+                  <div class="act-body"><div class="at"><span class="atw">Mentioned</span> in <em>On patience and compound things</em></div><div class="ad">Today · 11:24</div></div>
+                </div>
+                <div class="act-item"><div class="act-dot"><i data-lucide="phone"></i></div>
+                  <div class="act-body"><div class="at"><span class="atw">Call</span> · 38 min · discussed Q2 timing, pricing, team scope</div><div class="ad">Yesterday</div></div>
+                </div>
+                <div class="act-item"><div class="act-dot"><i data-lucide="mail"></i></div>
+                  <div class="act-body"><div class="at"><span class="atw">Email sent</span> · proposal v2 with revised scope</div><div class="ad">Apr 17 · 09:12</div></div>
+                </div>
+                <div class="act-item"><div class="act-dot"><i data-lucide="arrow-right-circle"></i></div>
+                  <div class="act-body"><div class="at"><span class="atw">Stage changed</span> · Qualified → Proposal</div><div class="ad">Apr 15</div></div>
+                </div>
+                <div class="act-item"><div class="act-dot"><i data-lucide="user-plus"></i></div>
+                  <div class="act-body"><div class="at"><span class="atw">Added</span> by Noa · source: referral from David Liu</div><div class="ad">Apr 03</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ld-section">
+              <h3>Tags</h3>
+              <div class="lead-tag-row">
+                <span class="mini-tag">consulting</span>
+                <span class="mini-tag">q2</span>
+                <span class="mini-tag">referral</span>
+                <span class="mini-tag">warm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeCmd()">
+  <div class="scrim"></div>
+  <div class="cmd">
+    <div class="cmd-in">
+      <i data-lucide="search"></i>
+      <input id="cmdInput" placeholder="Search notes, leads, or jump anywhere…" />
+      <span class="kbd">Esc</span>
+    </div>
+    <div class="cmd-list" id="cmdList">
+      <div class="cmd-sec">Suggested</div>
+      <div class="cmd-row sel" onclick="goTo('notes')"><i data-lucide="file-text"></i><span>On patience and compound things</span><span class="hint">Note</span></div>
+      <div class="cmd-row" onclick="goTo('leads'); setTimeout(()=>openLeadDrawer('maya'),80); closeCmd();"><i data-lucide="user"></i><span>Maya Greenberg</span><span class="hint">Lead</span></div>
+      <div class="cmd-row" onclick="goTo('leads'); setTimeout(()=>openLeadDrawer('david'),80); closeCmd();"><i data-lucide="user"></i><span>David Liu</span><span class="hint">Lead</span></div>
+      <div class="cmd-row"><i data-lucide="layout-grid"></i><span>Ship v0.2 / In progress</span><span class="hint">Card</span></div>
+      <div class="cmd-sec">Navigate</div>
+      <div class="cmd-row" onclick="goTo('inbox'); closeCmd();"><i data-lucide="inbox"></i><span>Go to Inbox</span><span class="hint">⌘1</span></div>
+      <div class="cmd-row" onclick="goTo('board'); closeCmd();"><i data-lucide="layout-grid"></i><span>Go to Boards</span><span class="hint">⌘2</span></div>
+      <div class="cmd-row" onclick="goTo('notes'); closeCmd();"><i data-lucide="notebook-pen"></i><span>Go to Notes</span><span class="hint">⌘3</span></div>
+      <div class="cmd-row" onclick="goTo('leads'); closeCmd();"><i data-lucide="users-round"></i><span>Go to Leads</span><span class="hint">⌘4</span></div>
+      <div class="cmd-row" onclick="goTo('graph'); closeCmd();"><i data-lucide="share-2"></i><span>Go to Graph</span><span class="hint">⌘5</span></div>
+      <div class="cmd-sec">Actions</div>
+      <div class="cmd-row"><i data-lucide="plus"></i><span>New note</span><span class="hint">⌘⇧N</span></div>
+      <div class="cmd-row"><i data-lucide="user-plus"></i><span>New lead</span><span class="hint">⌘⇧L</span></div>
+      <div class="cmd-row"><i data-lucide="sparkles"></i><span>Quick capture</span><span class="hint">⌘N</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- screen tabs -->
+<div class="screen-tabs">
+  <button onclick="goTo('board')" class="on" data-tab="board">Board</button>
+  <button onclick="goTo('notes')" data-tab="notes">Notes</button>
+  <button onclick="goTo('inbox')" data-tab="inbox">Inbox</button>
+  <button onclick="goTo('leads')" data-tab="leads">Leads</button>
+  <button onclick="goTo('graph')" data-tab="graph">Graph</button>
+</div>
+
+<!-- tweaks -->
+<div class="tweaks" id="tweaks">
+  <h4>Tweaks</h4>
+  <div class="tw-row">Theme
+    <button class="mini" id="twLight" onclick="setTheme('light')">Light</button>
+    <button class="mini on" id="twDark" onclick="setTheme('dark')">Dark</button>
+  </div>
+  <div class="tw-row">Direction
+    <button class="mini on" id="twLtr" onclick="setDir('ltr')">LTR</button>
+    <button class="mini" id="twRtl" onclick="setDir('rtl')">עברית</button>
+  </div>
+  <div class="tw-row">Density
+    <button class="mini on" id="twComfy" onclick="setDensity('comfy')">Comfortable</button>
+    <button class="mini" id="twCompact" onclick="setDensity('compact')">Compact</button>
+  </div>
+  <div class="tw-row">
+    <button class="mini" onclick="openCmd()">Show ⌘K</button>
+    <button class="mini" onclick="openQuickCapture()">Show ⌘N</button>
+  </div>
+</div>
+
+<script type="application/json" id="editmode-defaults">
+{"theme":"dark","dir":"ltr","density":"comfy"}
+</script>
+<script>
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "light",
+  "dir": "ltr",
+  "density": "comfy"
+}/*EDITMODE-END*/;
+
+// Edit-mode wiring — host toolbar Tweaks toggle
+window.addEventListener('message', (e) => {
+  if (!e.data) return;
+  if (e.data.type === '__activate_edit_mode') document.getElementById('tweaks').classList.add('on');
+  if (e.data.type === '__deactivate_edit_mode') document.getElementById('tweaks').classList.remove('on');
+});
+window.parent.postMessage({type:'__edit_mode_available'}, '*');
+function persist(edits){ window.parent.postMessage({type:'__edit_mode_set_keys', edits}, '*'); }
+
+// Init state
+let state = { ...TWEAK_DEFAULTS };
+applyTheme(state.theme); applyDir(state.dir); applyDensity(state.density);
+
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('twLight').classList.toggle('on', t==='light');
+  document.getElementById('twDark').classList.toggle('on', t==='dark');
+  const i = document.getElementById('themeIcon');
+  if (i){ i.setAttribute('data-lucide', t==='dark' ? 'sun' : 'moon'); window.lucide && lucide.createIcons(); }
+}
+function setTheme(t){ state.theme=t; applyTheme(t); persist({theme:t}); }
+function toggleTheme(){ setTheme(state.theme==='dark' ? 'light':'dark'); }
+function applyDir(d){
+  document.documentElement.setAttribute('dir', d);
+  document.getElementById('twLtr').classList.toggle('on', d==='ltr');
+  document.getElementById('twRtl').classList.toggle('on', d==='rtl');
+  const sub = document.getElementById('workspaceSub');
+  if (sub) sub.textContent = d==='rtl' ? 'מרחב עבודה פרטי' : 'Private workspace';
+  // swap a few labels to Hebrew when RTL
+  const labels = {inbox:'תיבת השראה', board:'לוחות', notes:'הערות', leads:'לידים', graph:'רשת'};
+  document.querySelectorAll('[data-s]').forEach(el => { const k = el.getAttribute('data-s'); if (d==='rtl' && labels[k]) el.textContent = labels[k]; else el.textContent = k.charAt(0).toUpperCase()+k.slice(1); });
+}
+function setDir(d){ state.dir=d; applyDir(d); persist({dir:d}); }
+function toggleDir(){ setDir(state.dir==='ltr'?'rtl':'ltr'); }
+function applyDensity(d){
+  document.getElementById('twComfy').classList.toggle('on', d==='comfy');
+  document.getElementById('twCompact').classList.toggle('on', d==='compact');
+  document.documentElement.style.setProperty('--pad-scale', d==='compact' ? '0.85' : '1');
+}
+function setDensity(d){ state.density=d; applyDensity(d); persist({density:d}); }
+
+// Screen nav
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s => s.style.display = s.getAttribute('data-screen')===screen ? '' : 'none');
+  document.querySelectorAll('.screen-tabs button').forEach(b => b.classList.toggle('on', b.getAttribute('data-tab')===screen));
+  document.querySelectorAll('.sb-item[data-nav]').forEach(i => i.classList.toggle('active', i.getAttribute('data-nav')===screen));
+  const label = {board:'Boards', notes:'Notes', inbox:'Inbox', leads:'Leads', graph:'Graph'}[screen];
+  document.getElementById('crumb').innerHTML = `<span>Atlas</span><span class="sep">/</span><span class="last">${label}</span>`;
+  if (screen==='graph') setTimeout(drawGraph, 60);
+}
+document.querySelectorAll('.sb-item[data-nav]').forEach(i => i.addEventListener('click', () => goTo(i.getAttribute('data-nav'))));
+
+function goToNotes(){ goTo('notes'); closeLeadDrawer(); }
+
+// Command palette
+function openCmd(){ document.getElementById('overlay').classList.add('on'); setTimeout(()=>document.getElementById('cmdInput').focus(), 30); }
+function closeCmd(){ document.getElementById('overlay').classList.remove('on'); }
+function openQuickCapture(){ alert("Quick capture ⌘N — demo only.\nIn production this opens the capture overlay."); }
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); document.getElementById('overlay').classList.contains('on')?closeCmd():openCmd(); }
+  if (e.key==='Escape'){ closeCmd(); closeLeadDrawer(); }
+});
+
+// ====== BOARD DATA ======
+const columns = [
+  { id:'backlog', name:'Backlog', dot:'var(--fg-4)', cards:[
+    { tag:'neutral', label:'Backlog', title:'Polish empty states across app', desc:'Consistent voice, hand-drawn-ish icons, no illustrations.', due:'—', links:2, avs:['N'] },
+    { tag:'neutral', label:'Backlog', title:'Revisit RTL letter-spacing for Heebo', desc:'Heebo at display sizes needs tracking = 0 in tests.', due:'—', links:0, avs:[] },
+    { tag:'neutral', label:'Backlog', title:'Keyboard shortcuts page in settings', desc:'', due:'—', links:1, avs:['A'] },
+  ]},
+  { id:'todo', name:'To do', dot:'var(--accent-primary)', cards:[
+    { tag:'indigo', label:'To do', title:'Backlinks panel pagination', desc:'Load first 20, "show more" loads the rest.', due:'Thu', links:3, avs:['N'] },
+    { tag:'indigo', label:'To do', title:'Graph — cluster colors by tag', desc:'Derive color from first tag; fallback to neutral.', due:'Fri', links:1, avs:['N','A'] },
+  ]},
+  { id:'inprog', name:'In progress', dot:'var(--amber-500)', cards:[
+    { tag:'amber', label:'In progress', title:'Quick-capture voice transcription', desc:'Whisper hook into capture pipeline; stub first.', due:'Today', links:5, avs:['A'] },
+    { tag:'amber', label:'In progress', title:'Lead mentions (@name) in notes editor', desc:'Typeahead + link through to lead drawer.', due:'Tomorrow', links:2, avs:['N'] },
+    { tag:'amber', label:'In progress', title:'Proposal — Q2 partnership', desc:'Finish section 4, review with Maya.', due:'Mon', links:4, avs:['N','A'] },
+  ]},
+  { id:'review', name:'In review', dot:'var(--apricot-500)', cards:[
+    { tag:'apricot', label:'In review', title:'Kanban drag — snap targets', desc:'Drop indicator reads as a ghost card outline.', due:'Wed', links:2, avs:['A'] },
+    { tag:'apricot', label:'In review', title:'Keyboard: j/k through inbox', desc:'', due:'Wed', links:0, avs:['N'] },
+  ]},
+  { id:'done', name:'Done', dot:'var(--sage-500)', cards:[
+    { tag:'sage', label:'Done', title:'Sidebar — project dot palette', desc:'Five brand tones, deterministic by id.', due:'—', links:1, avs:['N'] },
+    { tag:'sage', label:'Done', title:'Design tokens imported into Tailwind', desc:'', due:'—', links:0, avs:['N'] },
+  ]},
+];
+const avColors = {N:'linear-gradient(135deg,#FF8A3D,#E86D1F)', A:'linear-gradient(135deg,#3D49F5,#2E38D4)'};
+function renderBoard(){
+  const wrap = document.getElementById('boardCols');
+  wrap.innerHTML = columns.map(col => `
+    <div class="bcol">
+      <div class="bcol-h">
+        <span class="dot" style="background:${col.dot}"></span>
+        <span class="name">${col.name}</span>
+        <span class="count">${col.cards.length}</span>
+        <span class="more iconbtn" style="width:22px;height:22px"><i data-lucide="more-horizontal"></i></span>
+      </div>
+      <div class="bcol-body atlas-board-scroll">
+        ${col.cards.map(c => `
+          <div class="bcard">
+            <span class="tag ${c.tag}">${c.label}</span>
+            <div class="title">${c.title}</div>
+            ${c.desc ? `<div class="desc">${c.desc}</div>`:''}
+            <div class="meta">
+              ${c.due && c.due !== '—' ? `<span class="mi"><i data-lucide="calendar"></i>${c.due}</span>`:''}
+              ${c.links ? `<span class="mi"><i data-lucide="link"></i>${c.links}</span>`:''}
+              <span class="grow"></span>
+              ${c.avs.length ? `<span class="avs">${c.avs.map(a=>`<span class="av" style="background:${avColors[a]}">${a}</span>`).join('')}</span>`:''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="addcard"><i data-lucide="plus"></i>Add card</div>
+    </div>
+  `).join('');
+  window.lucide && lucide.createIcons();
+}
+
+// ====== NOTES DATA ======
+const notes = [
+  { id:'patience', active:true, title:'On patience and compound things', preview:'Everything good is slow. The garden we planted in March looks nothing like the photograph — not yet.', meta:'2d · 3 backlinks' },
+  { id:'proposal', title:'Proposal — Q2 partnership', preview:'Scope, timeline, pricing. Maya wanted the deliverables in three phases, not two.', meta:'Yesterday' },
+  { id:'week16', title:'Weekly review — week 16', preview:'Good week. Shipped the notes editor, broke the graph twice. Apartment progress: cabinets arrived.', meta:'Apr 18' },
+  { id:'default-write', title:'Default to writing it down', preview:'If a thought is worth thinking twice, it\'s worth a note. Even three lines. Future-you is a different person.', meta:'Apr 14' },
+  { id:'kitchen', title:'Kitchen — layout v3', preview:'Moved the pantry left, opened the counter run. Still undecided about the island overhang.', meta:'Apr 12' },
+  { id:'reading', title:'Reading list', preview:'Le Guin, Stegner, Dillard. Also the Rauno piece on small-team design systems.', meta:'Apr 10' },
+  { id:'calls', title:'Call notes — Mar 14', preview:'Q2 partnership call with Maya and David. 38 min. Agreed to revisit pricing after v2.', meta:'Mar 14' },
+  { id:'sprint17', title:'Sprint plan — week 17', preview:'Focus on notes-to-lead links, keyboard flow, and graph performance with 500 nodes.', meta:'Mar 12' },
+];
+function renderNotes(){
+  document.getElementById('notesList').innerHTML = notes.map(n => `
+    <div class="note-row ${n.active?'active':''}" onclick="selectNote('${n.id}')">
+      <div class="nt">${n.title}</div>
+      <div class="np">${n.preview}</div>
+      <div class="nm">${n.meta}</div>
+    </div>
+  `).join('');
+}
+function selectNote(id){
+  notes.forEach(n => n.active = n.id===id);
+  renderNotes();
+  const n = notes.find(x => x.id===id);
+  if (n) document.getElementById('noteTitle').textContent = n.title;
+}
+
+// ====== LEADS ======
+const leads = [
+  { id:'maya', name:'Maya Greenberg', role:'Co-founder · Ferngrove Studio', av:'MG', color:'#FF8A3D', stage:'proposal', value:'$24,000', valNum:24000, touched:'Today · 11:24', next:'Send revised proposal', tags:['consulting','q2'], email:'maya@ferngrove.co', phone:'+1 415 552 0198' },
+  { id:'david', name:'David Liu', role:'Product lead · Rowan', av:'DL', color:'#3D49F5', stage:'qualified', value:'$12,500', valNum:12500, touched:'Yesterday', next:'Schedule intro call', tags:['partnership'], email:'david@rowan.com', phone:'+1 646 550 1177' },
+  { id:'noa', name:'Noa Ben-Ari', role:'Engineer · Meridian', av:'NB', color:'#4F9868', stage:'contacted', value:'$8,000', valNum:8000, touched:'2d ago', next:'Follow up on spec', tags:['integration'], email:'noa@meridian.io', phone:'+972 54 440 9821' },
+  { id:'rami', name:'Rami Katz', role:'Founder · Orchard', av:'RK', color:'#DE4F2D', stage:'new', value:'—', valNum:0, touched:'3d ago', next:'Reply to intro email', tags:['cold','referral'], email:'rami@orchard.app', phone:'—' },
+  { id:'elena', name:'Elena Moreau', role:'Designer · Atelier Luz', av:'EM', color:'#3D49F5', stage:'won', value:'$18,000', valNum:18000, touched:'Last week', next:'Kickoff Tuesday', tags:['consulting','warm'], email:'elena@atelierluz.fr', phone:'+33 6 21 88 45 02' },
+  { id:'thomas', name:'Thomas Okafor', role:'CPO · Bluelark', av:'TO', color:'#DB951C', stage:'proposal', value:'$36,000', valNum:36000, touched:'Apr 17', next:'Send contract', tags:['q2','hot'], email:'thomas@bluelark.co', phone:'+1 202 555 0168' },
+  { id:'yael', name:'Yael Shapiro', role:'Head of Ops · Kestrel', av:'YS', color:'#FF8A3D', stage:'qualified', value:'$14,000', valNum:14000, touched:'Apr 15', next:'Send scope v2', tags:['ops'], email:'yael@kestrel.co.il', phone:'+972 52 994 3322' },
+  { id:'luca', name:'Luca Bianchi', role:'Advisor · Verso', av:'LB', color:'#4F9868', stage:'contacted', value:'—', valNum:0, touched:'Apr 14', next:'Intro to Noa', tags:['intro','referral'], email:'luca@verso.io', phone:'+39 338 772 4501' },
+  { id:'sam', name:'Sam Ostrom', role:'Director · Finchley', av:'SO', color:'#3D49F5', stage:'lost', value:'$9,000', valNum:9000, touched:'Apr 11', next:'Archive · budget cut', tags:['lost'], email:'sam@finchley.com', phone:'+1 415 880 4420' },
+  { id:'hana', name:'Hana Takagi', role:'Founder · Kiji', av:'HT', color:'#DE4F2D', stage:'new', value:'—', valNum:0, touched:'Apr 10', next:'Reply to note', tags:['cold'], email:'hana@kiji.jp', phone:'—' },
+];
+const stageMeta = {
+  new: {label:'New', cls:'stage-new'},
+  contacted: {label:'Contacted', cls:'stage-contacted'},
+  qualified: {label:'Qualified', cls:'stage-qualified'},
+  proposal: {label:'Proposal', cls:'stage-proposal'},
+  won: {label:'Won', cls:'stage-won'},
+  lost: {label:'Lost', cls:'stage-lost'},
+};
+const pipelineStages = ['new','contacted','qualified','proposal','won','lost'];
+
+function renderLeads(){
+  document.getElementById('leadsTable').innerHTML = leads.map(l => {
+    const s = stageMeta[l.stage];
+    return `<tr onclick="openLeadPage('${l.id}')">
+      <td><div class="lead-person"><div class="lead-av" style="background:${l.color}">${l.av}</div><div><div class="lead-name">${l.name}</div><div class="lead-role">${l.role}</div></div></div></td>
+      <td><span class="stage-pill ${s.cls}"><span class="dot"></span>${s.label}</span></td>
+      <td><span class="lead-value">${l.value}</span></td>
+      <td style="color:var(--fg-2); font-size:12.5px;">${l.touched}</td>
+      <td style="color:var(--fg-2); font-size:12.5px;">${l.next}</td>
+      <td><div class="lead-tag-row">${l.tags.map(t=>`<span class="mini-tag">${t}</span>`).join('')}</div>
+        <div class="lead-row-actions" onclick="event.stopPropagation()">
+          <button class="iconbtn" title="Quick peek" onclick="openLeadDrawer('${l.id}')"><i data-lucide="eye"></i></button>
+          <button class="iconbtn" title="Email"><i data-lucide="mail"></i></button>
+          <button class="iconbtn" title="Schedule"><i data-lucide="calendar-plus"></i></button>
+          <button class="iconbtn" title="More"><i data-lucide="more-horizontal"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  renderPipeline();
+  renderTimeline();
+  window.lucide && lucide.createIcons();
+}
+
+function renderPipeline(){
+  const wrap = document.getElementById('pipeCols'); if (!wrap) return;
+  const byStage = Object.fromEntries(pipelineStages.map(s => [s, leads.filter(l => l.stage===s)]));
+  const colorFor = { new:'var(--accent-primary)', contacted:'var(--apricot-500)', qualified:'var(--amber-500)', proposal:'var(--accent-primary)', won:'var(--sage-500)', lost:'var(--persimmon-500)'};
+  wrap.innerHTML = pipelineStages.map(s => {
+    const arr = byStage[s];
+    const total = arr.reduce((a,b)=>a+b.valNum,0);
+    return `<div class="pcol">
+      <div class="pcol-h"><span class="dot" style="background:${colorFor[s]}"></span><span class="name">${stageMeta[s].label}</span><span class="n">${arr.length}</span></div>
+      <div class="pcol-totals"><span>Total</span><b>${total?('$'+total.toLocaleString()):'—'}</b></div>
+      <div class="pcol-body atlas-board-scroll">
+        ${arr.map(l => `
+          <div class="lcard" onclick="openLeadPage('${l.id}')">
+            <div class="top"><div class="lead-av" style="background:${l.color}">${l.av}</div><div class="nm">${l.name}</div></div>
+            <div class="role">${l.role}</div>
+            <div class="foot"><span class="val">${l.value}</span><span class="next-chip"><i data-lucide="arrow-right"></i>${l.next}</span></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTimeline(){
+  const wrap = document.getElementById('tlWrap'); if (!wrap) return;
+  const events = [
+    { day:'Today', date:'Tuesday, Apr 22', items:[
+      { time:'11:24', kind:'note', lead:'maya', head:'Mentioned in a note', det:'Linked to "On patience and compound things" — line about Q2 timing.' },
+      { time:'10:02', kind:'email', lead:'thomas', head:'Replied', det:'"Great — let\'s target Thursday for signature. Sending to legal this afternoon."' },
+      { time:'09:13', kind:'call', lead:'david', head:'Called', det:'14 minutes · agreed to revisit pricing once v2 is in their hands.' },
+    ]},
+    { day:'Yesterday', date:'Monday, Apr 21', items:[
+      { time:'16:41', kind:'stage', lead:'yael', head:'Moved to Qualified', det:'From Contacted. Noa flagged scope-v1 as a fit.' },
+      { time:'14:20', kind:'email', lead:'maya', head:'Received email', det:'"Thanks — this is great. Monday 2pm works for me, and looping in Jules."' },
+      { time:'11:00', kind:'call', lead:'maya', head:'Call · 38 min', det:'Q2 timing, pricing, scope of team. Maya prefers the three-phase split.' },
+    ]},
+    { day:'Apr 17', date:'Thursday', items:[
+      { time:'09:12', kind:'email', lead:'maya', head:'Sent proposal v2', det:'Revised scope with three phases; price held at $24k.' },
+      { time:'08:30', kind:'note', lead:'elena', head:'Quick note', det:'Signed kickoff contract — starts next Tuesday.' },
+    ]},
+    { day:'Apr 15', date:'Tuesday', items:[
+      { time:'15:44', kind:'stage', lead:'maya', head:'Moved to Proposal', det:'From Qualified. David\'s referral path holding.' },
+      { time:'10:08', kind:'email', lead:'rami', head:'Received email', det:'"Heard about Atlas from Talia — curious about the notes-to-leads flow."' },
+    ]},
+  ];
+  wrap.innerHTML = events.map(d => `
+    <div class="tl-day">
+      <div class="tl-day-h">${d.day}<span class="sub">${d.date}</span></div>
+      ${d.items.map(it => {
+        const l = leads.find(x => x.id===it.lead);
+        return `<div class="tl-row">
+          <div class="tl-time">${it.time}</div>
+          <div class="tl-icon ${it.kind}"><i data-lucide="${({call:'phone',email:'mail',note:'file-text',stage:'arrow-right-circle'})[it.kind]}"></i></div>
+          <div class="tl-body">
+            <div class="tl-head">
+              ${l?`<span class="lead-av" style="background:${l.color}">${l.av}</span><span class="n" onclick="openLeadPage('${l.id}')">${l.name}</span>`:''}
+              <span class="act">· ${it.head}</span>
+            </div>
+            <div class="tl-det">${it.det}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+// Lead tab switching
+function switchLeadView(v){
+  document.querySelectorAll('#leadTabs .lead-tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-lview')===v));
+  document.querySelectorAll('#leadsHub .sub-screen').forEach(s => s.classList.toggle('on', s.getAttribute('data-lview')===v));
+}
+document.addEventListener('click', e => {
+  const tab = e.target.closest('#leadTabs .lead-tab'); if (tab) switchLeadView(tab.getAttribute('data-lview'));
+});
+
+// Drawer (quick peek)
+function openLeadDrawer(id){
+  goTo('leads');
+  const l = leads.find(x => x.id===id); if (!l) return;
+  document.getElementById('ldAv').textContent = l.av; document.getElementById('ldAv').style.background = l.color;
+  document.getElementById('ldHeroAv').textContent = l.av; document.getElementById('ldHeroAv').style.background = l.color;
+  document.getElementById('ldName').textContent = l.name;
+  document.getElementById('ldRole').textContent = l.role;
+  document.getElementById('ldHeroName').textContent = l.name;
+  document.getElementById('ldHeroSub').textContent = l.role;
+  document.getElementById('leadDrawer').classList.add('open');
+  document.getElementById('leadBg').classList.add('open');
+}
+function closeLeadDrawer(){
+  document.getElementById('leadDrawer').classList.remove('open');
+  document.getElementById('leadBg').classList.remove('open');
+}
+
+// Full page
+function openLeadPage(id){
+  goTo('leads');
+  const l = leads.find(x => x.id===id); if (!l) return;
+  document.getElementById('leadsHub').style.display = 'none';
+  document.getElementById('leadDetailPage').style.display = '';
+  document.getElementById('ldpAv').textContent = l.av; document.getElementById('ldpAv').style.background = l.color;
+  document.getElementById('ldpName').textContent = l.name;
+  document.getElementById('ldpRole').textContent = l.role;
+  document.getElementById('ldpCrumb').textContent = l.name;
+  document.getElementById('ldpEmail').innerHTML = `<i data-lucide="mail"></i>${l.email||''}`;
+  document.getElementById('ldpPhone').innerHTML = `<i data-lucide="phone"></i>${l.phone||''}`;
+  // stage bar
+  const currentIdx = pipelineStages.indexOf(l.stage);
+  document.getElementById('ldpStageBar').innerHTML = pipelineStages.filter(s => s!=='lost').map((s,i) => {
+    const cls = (l.stage==='lost') ? 'stage-step' : (i<currentIdx?'stage-step done':(i===currentIdx?'stage-step current':'stage-step'));
+    return `<div class="${cls}"><span>${stageMeta[s].label}</span><span class="sm">${i<currentIdx?'✓ done':(i===currentIdx?'current':'—')}</span></div>`;
+  }).join('');
+  // Activity
+  document.getElementById('ldpActivity').innerHTML = [
+    {ic:'file-text', at:'Mentioned', body:'in <em>On patience and compound things</em>', when:'Today · 11:24', cls:'style="color:var(--apricot-600); background:var(--apricot-300); border-color:transparent;"'},
+    {ic:'phone', at:'Call', body:'38 min · Q2 timing, pricing, team scope', when:'Yesterday'},
+    {ic:'mail', at:'Email sent', body:'proposal v2 with revised scope', when:'Apr 17 · 09:12'},
+    {ic:'arrow-right-circle', at:'Stage changed', body:'Qualified → Proposal', when:'Apr 15'},
+    {ic:'mail', at:'Email received', body:'"Sounds great — happy to chat. Thursdays and Fridays are best for me this month."', when:'Apr 15'},
+    {ic:'file-text', at:'Note linked', body:'<em>Call notes — Mar 14</em>', when:'Mar 14'},
+    {ic:'user-plus', at:'Added', body:'by Noa · source: referral from David Liu', when:'Apr 03'},
+  ].map(a => `<div class="act-item"><div class="act-dot" ${a.cls||''}><i data-lucide="${a.ic}"></i></div>
+    <div class="act-body"><div class="at"><span class="atw">${a.at}</span> ${a.body}</div><div class="ad">${a.when}</div></div></div>`).join('');
+  window.lucide && lucide.createIcons();
+}
+function closeLeadPage(){
+  document.getElementById('leadsHub').style.display = '';
+  document.getElementById('leadDetailPage').style.display = 'none';
+}
+
+// New lead modal
+function openNewLead(){ document.getElementById('newLeadBg').classList.add('on'); }
+function closeNewLead(){ document.getElementById('newLeadBg').classList.remove('on'); }
+function saveNewLead(){ closeNewLead(); toast('Lead saved'); }
+// Stage pick in modal
+document.addEventListener('click', e => {
+  const pk = e.target.closest('.stage-pick');
+  if (pk){ pk.parentElement.querySelectorAll('.stage-pick').forEach(x => x.classList.remove('on')); pk.classList.add('on'); }
+});
+
+// Toast
+function toast(msg){
+  let t = document.getElementById('toastEl');
+  if (!t){ t = document.createElement('div'); t.className='toast'; t.id='toastEl'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(window.__toastTO); window.__toastTO = setTimeout(()=>t.classList.remove('on'), 1800);
+}
+
+// Keyboard: ⇧⌘L opens new lead
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.shiftKey && e.key.toLowerCase()==='l'){ e.preventDefault(); openNewLead(); }
+});
+
+// ====== GRAPH ======
+function drawGraph(){
+  const svg = document.getElementById('graphSvg');
+  if (!svg) return;
+  if (svg.dataset.drawn) return; svg.dataset.drawn = '1';
+  const W = 800, H = 560;
+  const get = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const accent = get('--accent-primary') || '#3D49F5';
+  const apricot = get('--apricot-500') || '#FF8A3D';
+  const sage = get('--sage-500') || '#4F9868';
+  const muted = get('--fg-4') || '#A8A496';
+  const stroke = get('--border-strong') || 'rgba(0,0,0,.1)';
+
+  // deterministic layout — hand-composed for readable clusters
+  const nodes = [
+    {id:'patience', x:370,y:230, r:18, c:accent, big:true, label:'On patience'},
+    {id:'compound', x:260,y:180, r:9, c:accent, label:'Compounding'},
+    {id:'default-write', x:460,y:130, r:10, c:accent, label:'Default to writing'},
+    {id:'week16', x:300,y:310, r:10, c:accent, label:'Week 16 review'},
+    {id:'proposal', x:510,y:260, r:11, c:accent, label:'Q2 proposal'},
+    {id:'maya', x:580,y:180, r:13, c:apricot, label:'Maya'},
+    {id:'david', x:620,y:330, r:11, c:apricot, label:'David'},
+    {id:'noa', x:170,y:260, r:10, c:apricot, label:'Noa'},
+    {id:'kitchen', x:180,y:400, r:11, c:accent, label:'Kitchen v3'},
+    {id:'reading', x:430,y:410, r:9, c:accent, label:'Reading list'},
+    {id:'sprint', x:560,y:430, r:10, c:sage, label:'Sprint 17'},
+    {id:'calls', x:700,y:260, r:9, c:accent, label:'Call notes'},
+    {id:'dispossessed', x:520,y:480, r:7, c:muted, label:'Dispossessed'},
+    {id:'safety', x:370,y:490, r:7, c:muted, label:'Crossing to Safety'},
+    {id:'ops', x:90,y:340, r:8, c:accent, label:'Ops'},
+    {id:'ledger', x:100,y:180, r:8, c:accent, label:'Ledger idea'},
+  ];
+  const edges = [
+    ['patience','compound'],['patience','default-write'],['patience','week16'],['patience','proposal'],
+    ['patience','maya'],['patience','david'],['patience','reading'],
+    ['proposal','maya'],['proposal','david'],['proposal','calls'],['proposal','sprint'],
+    ['week16','kitchen'],['week16','sprint'],
+    ['default-write','compound'],['default-write','reading'],
+    ['reading','dispossessed'],['reading','safety'],
+    ['noa','patience'],['noa','sprint'],['noa','ops'],
+    ['kitchen','ops'],['ledger','default-write'],['ledger','compound'],
+  ];
+  const ni = Object.fromEntries(nodes.map(n => [n.id, n]));
+  const edgeEls = edges.map(([a,b]) => {
+    const A = ni[a], B = ni[b]; if (!A||!B) return '';
+    return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${stroke}" stroke-width="1" opacity="0.85"/>`;
+  }).join('');
+  const nodeEls = nodes.map(n => `
+    <g transform="translate(${n.x},${n.y})" style="cursor:pointer;">
+      <circle r="${n.r+4}" fill="${n.c}" opacity="0.14"/>
+      <circle r="${n.r}" fill="${n.c}" opacity="${n.big?1:0.9}" stroke="${n.big?'white':'rgba(255,255,255,.4)'}" stroke-width="${n.big?2:1}"/>
+      ${n.big?`<text y="${n.r+16}" text-anchor="middle" font-family="var(--font-display)" font-size="12" font-weight="600" fill="${get('--fg-1')||'#000'}">${n.label}</text>`:''}
+    </g>
+  `).join('');
+  svg.innerHTML = `
+    <g>${edgeEls}</g>
+    <g>${nodeEls}</g>
+  `;
+}
+
+// ===== boot =====
+window.addEventListener('DOMContentLoaded', () => {
+  renderBoard();
+  renderNotes();
+  renderLeads();
+  window.lucide && lucide.createIcons();
+});
+</script>
+</body>
+</html>

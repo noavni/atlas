@@ -13,11 +13,14 @@ import {
   NotebookPen,
   Plus,
   Settings as SettingsIcon,
+  Users,
 } from "lucide-react";
 import { AtlasLogo } from "@/components/brand/AtlasLogo";
 import { Icon } from "@/components/primitives/Icon";
 import { Badge } from "@/components/primitives/Badge";
 import { SPRING } from "@/lib/motion";
+import { useInbox } from "@/lib/queries/inbox";
+import { useLeads } from "@/lib/queries/leads";
 import { useMe } from "@/lib/queries/me";
 import { usePages } from "@/lib/queries/pages";
 import { useProjects } from "@/lib/queries/projects";
@@ -49,9 +52,10 @@ interface NavEntry {
 }
 
 const primaryNav: NavEntry[] = [
-  { id: "inbox", href: "/inbox", icon: InboxIcon, label: "Inbox", badge: 0 },
+  { id: "inbox", href: "/inbox", icon: InboxIcon, label: "Inbox" },
   { id: "board", href: "/board", icon: LayoutGrid, label: "Boards" },
   { id: "notes", href: "/notes", icon: NotebookPen, label: "Notes" },
+  { id: "leads", href: "/leads", icon: Users, label: "Leads" },
   { id: "graph", href: "/graph", icon: Network, label: "Graph" },
 ];
 
@@ -159,8 +163,16 @@ export function Sidebar() {
   const workspaceId = me.data?.workspaces[0]?.id;
   const projects = useProjects(workspaceId);
   const pages = usePages(workspaceId);
+  const inbox = useInbox(workspaceId);
+  const leads = useLeads(workspaceId);
   const pinnedPages = pages.data?.slice(0, 5) ?? [];
   const visibleProjects = projects.data ?? [];
+
+  const badges: Record<string, number | undefined> = {
+    inbox: inbox.data?.length,
+    leads: leads.data?.filter((l) => l.stage !== "won" && l.stage !== "lost").length,
+  };
+
   return (
     <aside
       className={cn(
@@ -185,7 +197,7 @@ export function Sidebar() {
             href={e.href}
             icon={e.icon}
             label={e.label}
-            badge={e.badge}
+            badge={badges[e.id]}
             active={pathname === e.href || pathname.startsWith(e.href + "/")}
           />
         ))}

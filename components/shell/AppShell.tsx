@@ -2,17 +2,15 @@
 
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { QuickCapture } from "@/components/inbox/QuickCapture";
+import { LeadDrawer } from "@/components/leads/LeadDrawer";
+import { NewLeadModal } from "@/components/leads/NewLeadModal";
 import { PrefetchBoot } from "@/components/providers/PrefetchBoot";
+import { BottomTabBar } from "./BottomTabBar";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { PageTransition } from "./PageTransition";
 
 export interface AppShellProps {
-  crumbs: string[];
-  children: React.ReactNode;
-}
-
-export interface AppShellProps2 {
   crumbs: string[];
   children: React.ReactNode;
   /** When true, the main viewport is a bounded flex container (for the
@@ -21,11 +19,7 @@ export interface AppShellProps2 {
   fullHeight?: boolean;
 }
 
-export function AppShell({
-  crumbs,
-  children,
-  fullHeight = false,
-}: AppShellProps & { fullHeight?: boolean }) {
+export function AppShell({ crumbs, children, fullHeight = false }: AppShellProps) {
   return (
     <div
       className="grid h-screen overflow-hidden bg-surface-app text-fg-1"
@@ -47,6 +41,9 @@ export function AppShell({
       </main>
       <CommandPalette />
       <QuickCapture />
+      <NewLeadModal />
+      <LeadDrawer />
+      <BottomTabBar />
     </div>
   );
 }

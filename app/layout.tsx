@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import {
   Frank_Ruhl_Libre,
   Heebo,
+  Instrument_Serif,
   Inter,
   JetBrains_Mono,
   Source_Serif_4,
@@ -25,6 +26,12 @@ const jetbrains = JetBrains_Mono({
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
   variable: "--font-source-serif",
+  display: "swap",
+});
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 const heebo = Heebo({
@@ -58,6 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     inter.variable,
     jetbrains.variable,
     sourceSerif.variable,
+    instrumentSerif.variable,
     heebo.variable,
     frankRuhlLibre.variable,
   ].join(" ");

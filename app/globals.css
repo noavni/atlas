@@ -7,6 +7,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Swap --font-display to Instrument Serif (loaded by next/font in layout.tsx).
+ * The token system references `var(--font-display)` everywhere; this redefine
+ * keeps the design tokens pure and lets Atlas sit on Instrument Serif without
+ * editing the vendored token file. */
+:root {
+  --font-display: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+}
+
 html,
 body {
   height: 100%;
