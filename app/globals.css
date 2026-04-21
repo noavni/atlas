@@ -1,10 +1,11 @@
+/* Design tokens — source of truth for colors, type, spacing, radii, shadows.
+ * Must stay above @tailwind so CSS @import ordering stays valid. */
+@import "../design-system/colors_and_type.css";
+@import "../design-system/motion.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Design tokens — source of truth for colors, type, spacing, radii, shadows */
-@import "../design-system/colors_and_type.css";
-@import "../design-system/motion.css";
 
 html,
 body {
