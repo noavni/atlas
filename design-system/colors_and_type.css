@@ -9,7 +9,7 @@
 /* ---------- Fonts ---------- */
 /* Google Fonts — all five families used by Atlas. All are free for commercial
    use. Substitute with local .woff2 in /fonts/ when moving to production. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Hebrew:wght@400;500;600;700&family=Noto+Serif+Hebrew:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&family=Heebo:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap');
 
 /* ============================================================================
    LIGHT MODE (default)
@@ -31,24 +31,29 @@
   --neutral-800: #24221C;   /* primary text (ink) */
   --neutral-900: #131109;
 
-  /* Indigo — the accent */
-  --indigo-50:  #EEF0FE;
-  --indigo-100: #DCE0FD;
-  --indigo-200: #B9C1FB;
-  --indigo-300: #8E9AF5;
-  --indigo-400: #6B78EF;
-  --indigo-500: #4B5BE8;    /* primary */
-  --indigo-600: #3B48C9;
-  --indigo-700: #2E38A0;
-  --indigo-800: #1F2672;
+  /* Indigo — the accent (more vibrant) */
+  --indigo-50:  #EDEEFF;
+  --indigo-100: #D8DBFF;
+  --indigo-200: #B2B8FF;
+  --indigo-300: #858EFF;
+  --indigo-400: #5F69FF;
+  --indigo-500: #3D49F5;    /* primary — punchier */
+  --indigo-600: #2E38D4;
+  --indigo-700: #222AA3;
+  --indigo-800: #161C78;
 
-  /* Semantics — muted */
-  --sage-500:      #5E8A6B;  /* success */
-  --sage-100:      #E2EDE4;
-  --amber-500:     #C8881E;  /* warning */
-  --amber-100:     #F7ECD3;
-  --persimmon-500: #C85A3D;  /* danger */
-  --persimmon-100: #F7DFD5;
+  /* Apricot — second accent for energy + status */
+  --apricot-300: #FFD3A8;
+  --apricot-500: #FF8A3D;
+  --apricot-600: #E86D1F;
+
+  /* Semantics — a touch more saturated */
+  --sage-500:      #4F9868;  /* success */
+  --sage-100:      #DCEFE1;
+  --amber-500:     #DB951C;  /* warning */
+  --amber-100:     #F9ECC8;
+  --persimmon-500: #DE4F2D;  /* danger */
+  --persimmon-100: #FADBCE;
 
   /* ---------- Semantic tokens ---------- */
   /* Surfaces (three depth layers + overlay material) */
@@ -159,8 +164,8 @@
   --font-ui:      "Inter", "Heebo", -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   --font-serif:   "Source Serif 4", "Frank Ruhl Libre", ui-serif, Georgia, serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --font-hebrew-ui:     "Noto Sans Hebrew", "Inter", system-ui, sans-serif;
-  --font-hebrew-serif:  "Noto Serif Hebrew", "Source Serif 4", serif;
+  --font-hebrew-ui:     "Heebo", "Inter", system-ui, sans-serif;
+  --font-hebrew-serif:  "Frank Ruhl Libre", "Source Serif 4", serif;
 
   /* Scale (UI) */
   --text-xs:   11px;

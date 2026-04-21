@@ -277,7 +277,7 @@ A single, soft gradient sphere — the only place in the product where a gradien
 
 ## Caveats
 
-- **Font substitutions:** No fonts were provided. Inter, Source Serif 4, JetBrains Mono, Noto Sans Hebrew, and Noto Serif Hebrew are all loaded via Google Fonts (all free for commercial use). Noto Serif Hebrew pairs very well with Source Serif 4 for the bilingual reading experience. If Atlas grows a custom wordmark font, swap it in and flag here.
-- **No logomark was provided.** The animated gradient sphere in `assets/logomark.svg` (and preview/brand-logo.html) is a placeholder — tasteful, not final.
-- **No icon set was provided.** Using Lucide (see ICONOGRAPHY).
-- **No product code exists yet.** The UI kits are pixel-accurate hi-fi mockups, not production components.
+- **Palette is now more vibrant** — indigo shifted from `#4B5BE8` → `#3D49F5` and an apricot secondary (`#FF8A3D`) was added for energy on status/tags.
+- **Hebrew** now uses Heebo for UI (warmer, more modern than Noto Sans Hebrew) and keeps Frank Ruhl Libre for serif reading.
+- **Motion prototype** (`motion_proto/index.html`) uses Framer Motion's real spring solver — drag a card, pull the bottom sheet, tap a note for shared-element transition.
+- **Logomark, icons, fonts** still placeholder / CDN substitutions — swap when production assets arrive.

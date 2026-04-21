@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Source_Serif_4, Heebo, Noto_Serif_Hebrew } from "next/font/google";
+import {
+  Frank_Ruhl_Libre,
+  Heebo,
+  Inter,
+  JetBrains_Mono,
+  Source_Serif_4,
+} from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
@@ -24,9 +30,10 @@ const heebo = Heebo({
   variable: "--font-heebo",
   display: "swap",
 });
-const notoSerifHebrew = Noto_Serif_Hebrew({
-  subsets: ["hebrew"],
-  variable: "--font-noto-serif-hebrew",
+const frankRuhlLibre = Frank_Ruhl_Libre({
+  subsets: ["hebrew", "latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-frank-ruhl-libre",
   display: "swap",
 });
 
@@ -50,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     jetbrains.variable,
     sourceSerif.variable,
     heebo.variable,
-    notoSerifHebrew.variable,
+    frankRuhlLibre.variable,
   ].join(" ");
 
   return (

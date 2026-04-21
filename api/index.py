@@ -17,6 +17,7 @@ from api.routers.cards import router as cards_router
 from api.routers.columns import router as columns_router
 from api.routers.health import router as health_router
 from api.routers.me import router as me_router
+from api.routers.pages import router as pages_router
 from api.routers.projects import router as projects_router
 from api.routers.workspaces import router as workspaces_router
 
@@ -50,6 +51,7 @@ app.include_router(projects_router)
 app.include_router(boards_router)
 app.include_router(columns_router)
 app.include_router(cards_router)
+app.include_router(pages_router)
 
 # Internal (secret-protected)
 app.include_router(worker_drain_router)
