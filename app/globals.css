@@ -70,6 +70,15 @@ body {
   border-radius: var(--radius-xs);
 }
 
+/* The quick-capture textarea + inline Brain-dump bar handle their own
+ * focus treatment (bg fade on the parent) — the global focus-ring would
+ * paint a mismatched rounded rectangle around the inner <textarea>. */
+.atlas-quick-capture textarea:focus-visible,
+.atlas-inline-capture textarea:focus-visible {
+  box-shadow: none;
+  border-radius: 0;
+}
+
 /* ============================================================================
    Atlas sphere logomark — animated SVG orb
    ============================================================================ */

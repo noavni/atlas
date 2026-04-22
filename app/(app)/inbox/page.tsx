@@ -183,7 +183,8 @@ export default function InboxPage() {
         {/* Inline capture bar — matches QuickCapture look */}
         <div
           className={cn(
-            "mb-6 overflow-hidden rounded-[16px] bg-surface-raised",
+            "atlas-inline-capture",
+            "mb-6 overflow-hidden rounded-[var(--radius-lg)] bg-surface-raised",
             "shadow-[0_0_0_0.5px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]",
             "dark:shadow-[0_0_0_0.5px_rgba(255,255,255,0.05)]",
           )}
@@ -211,29 +212,29 @@ export default function InboxPage() {
             placeholder="What's on your mind…"
             rows={1}
             dir="auto"
-            className="w-full resize-none bg-transparent px-5 pt-4 pb-2 font-serif text-[17px] leading-[1.45] text-fg-1 outline-none placeholder:text-fg-4"
-            style={{ minHeight: 44 }}
+            className="w-full resize-none bg-transparent px-6 pb-4 pt-5 font-serif text-[17px] leading-[1.5] text-fg-1 outline-none placeholder:text-fg-4"
+            style={{ minHeight: 60 }}
           />
-          <div className="flex items-center gap-1 px-3 pb-2.5 pt-1">
+          <div className="flex items-center gap-1.5 border-t border-border-subtle/70 px-5 py-3.5">
             <IconButton
               size="sm"
               title="Record voice (opens quick capture)"
               onClick={() => setQuickCaptureOpen(true)}
             >
-              <Icon icon={Mic} size={14} />
+              <Icon icon={Mic} size={15} />
             </IconButton>
             <IconButton size="sm" title="Image (soon)" disabled>
-              <Icon icon={ImageIcon} size={14} />
+              <Icon icon={ImageIcon} size={15} />
             </IconButton>
             <IconButton size="sm" title="File (soon)" disabled>
-              <Icon icon={FileIcon} size={14} />
+              <Icon icon={FileIcon} size={15} />
             </IconButton>
             <div className="ms-auto flex items-center gap-1.5">
               {draft.trim() ? (
                 <button
                   type="button"
                   onClick={submitDraft}
-                  className="inline-flex h-7 items-center gap-1.5 rounded-full bg-accent px-3 text-[11.5px] font-medium text-fg-on-accent shadow-1 transition-opacity hover:opacity-90"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-accent px-3.5 text-[12.5px] font-medium text-fg-on-accent shadow-1 transition-opacity hover:opacity-90"
                 >
                   Save
                   <Kbd className="bg-white/20 text-fg-on-accent">↵</Kbd>
@@ -242,7 +243,7 @@ export default function InboxPage() {
                 <button
                   type="button"
                   onClick={() => setQuickCaptureOpen(true)}
-                  className="inline-flex h-7 items-center gap-1 rounded-full border border-border-subtle bg-surface-1 px-2.5 text-[11px] font-medium text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg-1"
+                  className="inline-flex h-8 items-center gap-1 rounded-full border border-border-subtle bg-surface-1 px-3 text-[11.5px] font-medium text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg-1"
                   title="Open quick capture"
                 >
                   <Kbd>⌘N</Kbd>

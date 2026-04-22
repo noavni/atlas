@@ -127,7 +127,8 @@ export function QuickCapture() {
           />
           <motion.div
             className={cn(
-              "relative z-10 w-full max-w-[560px] overflow-hidden rounded-[18px] bg-surface-raised",
+              "atlas-quick-capture",
+              "relative z-10 flex w-full max-w-[600px] flex-col overflow-hidden rounded-[var(--radius-lg)] bg-surface-raised",
               "shadow-[0_0_0_0.5px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.06),0_28px_64px_-16px_rgba(0,0,0,0.4)]",
               "dark:shadow-[0_0_0_0.5px_rgba(255,255,255,0.06),0_28px_64px_-16px_rgba(0,0,0,0.6)]",
             )}
@@ -137,12 +138,14 @@ export function QuickCapture() {
             transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.9 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 pt-4 pb-1">
+            {/* Eyebrow row — 24px side padding + 20px top, 8px bottom (space-5 / space-3) */}
+            <div className="flex items-center justify-between px-6 pb-2 pt-5">
               <span className="text-[11.5px] font-medium lowercase tracking-[0.02em] text-fg-3">
                 quick capture
               </span>
               <Kbd>⌘N</Kbd>
             </div>
+            {/* Input — generous vertical padding, big readable serif */}
             <textarea
               ref={taRef}
               value={text}
@@ -153,7 +156,6 @@ export function QuickCapture() {
                   void onSubmit();
                 }
                 if (e.key === "Enter" && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-                  // allow Enter to submit single-line quick captures
                   if (!text.includes("\n")) {
                     e.preventDefault();
                     void onSubmit();
@@ -163,8 +165,8 @@ export function QuickCapture() {
               placeholder="Anything at all. It goes in the inbox."
               rows={2}
               dir="auto"
-              className="w-full resize-none bg-transparent px-5 pb-3 pt-1 font-serif text-[17px] leading-[1.45] text-fg-1 outline-none placeholder:text-fg-4"
-              style={{ minHeight: 48 }}
+              className="w-full resize-none bg-transparent px-6 pb-5 pt-2 font-serif text-[17px] leading-[1.5] text-fg-1 outline-none placeholder:text-fg-4"
+              style={{ minHeight: 72 }}
             />
 
             <AnimatePresence initial={false}>
@@ -175,7 +177,7 @@ export function QuickCapture() {
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={SPRING.gentle}
-                  className="relative flex items-center gap-0.5 overflow-hidden bg-surface-1/40 px-5 py-2.5"
+                  className="relative flex items-center gap-0.5 overflow-hidden bg-surface-1/40 px-6 py-3"
                 >
                   {Array.from({ length: 48 }).map((_, i) => (
                     <span
@@ -188,14 +190,15 @@ export function QuickCapture() {
                       }
                     />
                   ))}
-                  <span className="absolute end-5 font-mono text-[11px] text-fg-3">
+                  <span className="absolute end-6 font-mono text-[11px] text-fg-3">
                     {fmtElapsed(elapsed)}
                   </span>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="flex items-center gap-1 border-t border-border-subtle/70 px-4 py-2.5">
+            {/* Action row — 20px side padding, 14px vertical (space-5 / ~space-4.5) */}
+            <div className="flex items-center gap-1.5 border-t border-border-subtle/70 px-5 py-3.5">
               <IconButton
                 size="sm"
                 onClick={toggleRecord}
@@ -219,18 +222,21 @@ export function QuickCapture() {
                 onClick={onSubmit}
                 disabled={!text.trim() || capture.isPending}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium shadow-1 transition-opacity",
+                  "inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-medium shadow-1 transition-opacity",
                   text.trim()
                     ? "bg-accent text-fg-on-accent hover:opacity-90"
                     : "cursor-not-allowed bg-surface-2 text-fg-4",
                 )}
               >
                 Save to inbox
-                <Kbd className="bg-white/20 text-fg-on-accent">↵</Kbd>
+                {text.trim() && <Kbd className="bg-white/20 text-fg-on-accent">↵</Kbd>}
               </button>
             </div>
 
-            <div className="mx-auto mb-1.5 mt-1 h-[3px] w-8 rounded-full bg-fg-4/30" />
+            {/* Drag handle — macOS sheet detail */}
+            <div className="flex justify-center pb-2 pt-1.5">
+              <div className="h-[3px] w-8 rounded-full bg-fg-4/25" />
+            </div>
           </motion.div>
         </motion.div>
       )}
