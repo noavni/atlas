@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox, LayoutGrid, NotebookPen, Network, Users } from "lucide-react";
+import { Inbox, NotebookPen, Network, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/primitives/Icon";
@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
  */
 const TABS = [
   { id: "inbox", label: "Inbox", href: "/inbox", icon: Inbox },
-  { id: "board", label: "Boards", href: "/board", icon: LayoutGrid },
   { id: "notes", label: "Notes", href: "/notes", icon: NotebookPen },
   { id: "leads", label: "Leads", href: "/leads", icon: Users },
   { id: "graph", label: "Graph", href: "/graph", icon: Network },

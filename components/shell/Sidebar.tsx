@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Folder,
   Inbox as InboxIcon,
-  LayoutGrid,
   Network,
   NotebookPen,
   Plus,
@@ -58,7 +57,6 @@ interface NavEntry {
 
 const primaryNav: NavEntry[] = [
   { id: "inbox", href: "/inbox", icon: InboxIcon, label: "Inbox" },
-  { id: "board", href: "/board", icon: LayoutGrid, label: "Boards" },
   { id: "notes", href: "/notes", icon: NotebookPen, label: "Notes" },
   { id: "leads", href: "/leads", icon: Users, label: "Leads" },
   { id: "graph", href: "/graph", icon: Network, label: "Graph" },

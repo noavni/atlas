@@ -32,10 +32,9 @@ const VIEWS: { id: LeadView; label: string }[] = [
   { id: "timeline", label: "Timeline" },
 ];
 
-type SortKey = "recent" | "value" | "name" | "stage";
+type SortKey = "recent" | "name" | "stage";
 const SORT_LABEL: Record<SortKey, string> = {
   recent: "Last touched",
-  value: "Value (high → low)",
   name: "Name (A → Z)",
   stage: "Stage",
 };
@@ -106,8 +105,6 @@ export default function LeadsHubPage() {
     const sorted = [...base];
     sorted.sort((a, b) => {
       switch (sortKey) {
-        case "value":
-          return (b.value_cents ?? 0) - (a.value_cents ?? 0);
         case "name":
           return a.name.localeCompare(b.name);
         case "stage":

@@ -87,10 +87,9 @@ export function CommandPalette() {
       }
       if (meta && !e.shiftKey) {
         if (k === "1") { e.preventDefault(); router.push("/inbox"); return; }
-        if (k === "2") { e.preventDefault(); router.push("/board"); return; }
-        if (k === "3") { e.preventDefault(); router.push("/notes"); return; }
-        if (k === "4") { e.preventDefault(); router.push("/leads"); return; }
-        if (k === "5") { e.preventDefault(); router.push("/graph"); return; }
+        if (k === "2") { e.preventDefault(); router.push("/notes"); return; }
+        if (k === "3") { e.preventDefault(); router.push("/leads"); return; }
+        if (k === "4") { e.preventDefault(); router.push("/graph"); return; }
       }
       if (e.key === "Escape" && open) setOpen(false);
     }
@@ -108,10 +107,9 @@ export function CommandPalette() {
   const entries: Entry[] = useMemo(() => {
     const nav: Entry[] = [
       { id: "go-inbox", label: "Go to Inbox", icon: Inbox, section: "Navigate", shortcut: ["⌘", "1"], run: () => router.push("/inbox") },
-      { id: "go-board", label: "Go to Boards", icon: LayoutGrid, section: "Navigate", shortcut: ["⌘", "2"], run: () => router.push("/board") },
-      { id: "go-notes", label: "Go to Notes", icon: NotebookPen, section: "Navigate", shortcut: ["⌘", "3"], run: () => router.push("/notes") },
-      { id: "go-leads", label: "Go to Leads", icon: Users, section: "Navigate", shortcut: ["⌘", "4"], run: () => router.push("/leads") },
-      { id: "go-graph", label: "Go to Graph", icon: Network, section: "Navigate", shortcut: ["⌘", "5"], run: () => router.push("/graph") },
+      { id: "go-notes", label: "Go to Notes", icon: NotebookPen, section: "Navigate", shortcut: ["⌘", "2"], run: () => router.push("/notes") },
+      { id: "go-leads", label: "Go to Leads", icon: Users, section: "Navigate", shortcut: ["⌘", "3"], run: () => router.push("/leads") },
+      { id: "go-graph", label: "Go to Graph", icon: Network, section: "Navigate", shortcut: ["⌘", "4"], run: () => router.push("/graph") },
       { id: "go-settings", label: "Go to Settings", icon: Settings, section: "Navigate", run: () => router.push("/settings") },
     ];
     const actions: Entry[] = [

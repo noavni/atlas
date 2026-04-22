@@ -23,7 +23,7 @@ import { Icon } from "@/components/primitives/Icon";
 import { IconButton } from "@/components/primitives/IconButton";
 import { LeadAvatar } from "./LeadAvatar";
 import { StagePill } from "./StagePill";
-import { formatFullMoney, relativeTime } from "@/lib/leads";
+import { relativeTime } from "@/lib/leads";
 import { useLeadDetail } from "@/lib/queries/leads";
 import { useLeadsUI } from "@/lib/store/leads";
 import { useUI } from "@/lib/store/ui";
@@ -128,9 +128,6 @@ export function LeadDrawer() {
                       </div>
                       <div className="mt-2.5 flex items-center gap-1.5">
                         <StagePill stage={detail.data.lead.stage} />
-                        <span className="text-[12.5px] font-medium text-fg-2">
-                          {formatFullMoney(detail.data.lead.value_cents || 0)}
-                        </span>
                       </div>
                     </div>
                   </div>

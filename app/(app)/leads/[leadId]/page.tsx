@@ -23,7 +23,7 @@ import { Icon } from "@/components/primitives/Icon";
 import { IconButton } from "@/components/primitives/IconButton";
 import { LeadAvatar } from "@/components/leads/LeadAvatar";
 import { StageBar } from "@/components/leads/StageBar";
-import { formatFullMoney, relativeTime } from "@/lib/leads";
+import { relativeTime } from "@/lib/leads";
 import { SPRING } from "@/lib/motion";
 import {
   useAddActivity,
@@ -212,7 +212,6 @@ export default function LeadDetailPage({ params }: Params) {
                   <div className="grid grid-cols-2 gap-x-5 gap-y-4">
                     {[
                       ["Stage", lead.stage],
-                      ["Value", formatFullMoney(lead.value_cents || 0)],
                       ["Source", lead.source || "—"],
                       ["Owner", lead.owner_id ? "You" : "—"],
                       ["Created", relativeTime(lead.created_at)],

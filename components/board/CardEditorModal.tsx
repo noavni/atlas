@@ -1,12 +1,11 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { Trash2, X } from "lucide-react";
+import { LayoutGrid, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/primitives/Button";
 import { Icon } from "@/components/primitives/Icon";
 import { IconButton } from "@/components/primitives/IconButton";
-import { SPRING } from "@/lib/motion";
+import { Modal } from "@/components/primitives/Modal";
 import { useCards, useColumns, useBoards } from "@/lib/queries/boards";
 import { useDeleteCard, useMoveCard, useUpdateCard } from "@/lib/queries/cards";
 import { useCardEditor } from "@/lib/store/cardEditor";
@@ -60,7 +59,6 @@ export function CardEditorModal({ projectId }: Props) {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && cardId) close();
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && cardId) save();
     }
     window.addEventListener("keydown", onKey);
@@ -102,131 +100,131 @@ export function CardEditorModal({ projectId }: Props) {
     close();
   }
 
+  if (!card) return null;
+
   return (
-    <AnimatePresence>
-      {cardId && card && (
-        <motion.div
-          className="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto px-4 py-[8vh]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          onClick={close}
-        >
-          <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px]" />
-          <motion.div
-            role="dialog"
-            aria-labelledby="card-editor-title"
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={SPRING.panel}
-            className="relative z-10 flex w-full max-w-[640px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-app shadow-4"
-            onClick={(e) => e.stopPropagation()}
+    <Modal
+      open={!!cardId}
+      onClose={close}
+      title=""
+      headerOverride={
+        <div className="flex flex-none items-center gap-2 px-6 pb-4 pt-5">
+          <span className="flex h-7 w-7 flex-none items-center justify-center rounded-[8px] bg-accent-tint text-accent">
+            <Icon icon={LayoutGrid} size={13} />
+          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-3">
+            Card
+          </span>
+          <IconButton
+            className="ms-auto"
+            size="sm"
+            title="Delete card"
+            onClick={onDelete}
           >
-            <div className="flex flex-none items-center gap-2 border-b border-border-subtle px-5 py-3">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-fg-3">
-                Card
-              </span>
-              <IconButton
-                className="ms-auto"
-                size="sm"
-                title="Delete"
-                onClick={onDelete}
+            <Icon icon={Trash2} size={13} />
+          </IconButton>
+        </div>
+      }
+      width="md"
+      footer={
+        <>
+          <div className="text-[11px] text-fg-3">⌘ + ⏎ to save · Esc to close</div>
+          <div className="ms-auto flex gap-2">
+            <Button variant="ghost" onClick={close}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={save} disabled={update.isPending}>
+              {update.isPending ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-5">
+        <input
+          autoFocus
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          dir="auto"
+          placeholder="Untitled"
+          className="w-full bg-transparent font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.015em] text-fg-1 outline-none placeholder:text-fg-4"
+        />
+
+        <Section label="Column">
+          <Pills>
+            {(columns.data ?? []).map((c) => (
+              <Pill
+                key={c.id}
+                active={columnId === c.id}
+                onClick={() => setColumnId(c.id)}
               >
-                <Icon icon={Trash2} size={13} />
-              </IconButton>
-              <IconButton size="sm" title="Close" onClick={close}>
-                <Icon icon={X} size={14} />
-              </IconButton>
-            </div>
+                {c.name}
+              </Pill>
+            ))}
+          </Pills>
+        </Section>
 
-            <div className="space-y-4 px-5 py-5">
-              <input
-                id="card-editor-title"
-                autoFocus
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                dir="auto"
-                placeholder="Card title"
-                className="w-full bg-transparent font-display text-[24px] font-semibold tracking-[-0.015em] text-fg-1 outline-none placeholder:text-fg-4"
-              />
+        <Section label="Status">
+          <Pills>
+            {STATES.map((s) => (
+              <Pill key={s.id} active={state === s.id} onClick={() => setState(s.id)}>
+                {s.label}
+              </Pill>
+            ))}
+          </Pills>
+        </Section>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.06em] text-fg-3">
-                  Column
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {(columns.data ?? []).map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setColumnId(c.id)}
-                      className={cn(
-                        "rounded-md border px-2.5 py-1.5 text-[11.5px] font-medium transition-colors",
-                        columnId === c.id
-                          ? "border-transparent bg-accent text-fg-on-accent"
-                          : "border-border-subtle bg-surface-raised text-fg-2 hover:bg-surface-2",
-                      )}
-                    >
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        <Section label="Description">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            dir="auto"
+            rows={6}
+            placeholder="Notes, context, acceptance criteria…"
+            className="min-h-[140px] w-full resize-y rounded-[12px] border border-border-subtle bg-surface-1 px-3.5 py-3 font-serif text-[15px] leading-[1.55] text-fg-1 outline-none placeholder:text-fg-4 focus:border-accent focus:bg-surface-raised focus:shadow-[0_0_0_3px_var(--accent-tint)]"
+          />
+        </Section>
+      </div>
+    </Modal>
+  );
+}
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.06em] text-fg-3">
-                  State
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {STATES.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setState(s.id)}
-                      className={cn(
-                        "rounded-md border px-2.5 py-1.5 text-[11.5px] font-medium transition-colors",
-                        state === s.id
-                          ? "border-accent bg-accent-tint text-accent"
-                          : "border-border-subtle bg-surface-raised text-fg-2 hover:bg-surface-2",
-                      )}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-fg-3">
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.06em] text-fg-3">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  dir="auto"
-                  rows={6}
-                  placeholder="Notes, context, acceptance criteria…"
-                  className="min-h-[140px] w-full rounded-md border border-border-input bg-surface-raised px-3 py-2 font-serif text-[14px] leading-[1.55] text-fg-1 outline-none placeholder:text-fg-4 focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-tint)]"
-                />
-              </div>
-            </div>
+function Pills({ children }: { children: React.ReactNode }) {
+  return <div className="flex flex-wrap gap-1.5">{children}</div>;
+}
 
-            <div className="flex flex-none items-center gap-2 border-t border-border-subtle bg-surface-1/60 px-5 py-3">
-              <div className="text-[11px] text-fg-3">⌘ + ⏎ to save · Esc to close</div>
-              <div className="ms-auto flex gap-2">
-                <Button variant="ghost" onClick={close}>
-                  Cancel
-                </Button>
-                <Button variant="primary" onClick={save} disabled={update.isPending}>
-                  {update.isPending ? "Saving…" : "Save"}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+function Pill({
+  active,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-full border px-3 py-1 text-[12px] font-medium transition-all duration-150",
+        active
+          ? "border-transparent bg-accent text-fg-on-accent shadow-1"
+          : "border-border-subtle bg-surface-1 text-fg-2 hover:border-border-strong hover:bg-surface-2 hover:text-fg-1",
       )}
-    </AnimatePresence>
+    >
+      {children}
+    </button>
   );
 }

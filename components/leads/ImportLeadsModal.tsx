@@ -1,14 +1,12 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { Download, FileSpreadsheet, Upload, X } from "lucide-react";
+import { Download, FileSpreadsheet, Upload } from "lucide-react";
 import Papa from "papaparse";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { read as xlsxRead, utils as xlsxUtils } from "xlsx";
 import { Button } from "@/components/primitives/Button";
 import { Icon } from "@/components/primitives/Icon";
-import { IconButton } from "@/components/primitives/IconButton";
-import { SPRING } from "@/lib/motion";
+import { Modal } from "@/components/primitives/Modal";
 import { useBulkCreateLeads, type BulkLeadInput } from "@/lib/queries/leads";
 import { useMe } from "@/lib/queries/me";
 import { useLeadsUI } from "@/lib/store/leads";
@@ -25,7 +23,6 @@ const TARGETS = [
   "location",
   "source",
   "stage",
-  "value_cents",
   "tags",
   "linkedin_url",
   "next_step",
@@ -43,7 +40,6 @@ const HEADER_HINTS: Record<Target, string[]> = {
   location: ["location", "city", "address", "מיקום", "עיר"],
   source: ["source", "channel", "where", "מקור"],
   stage: ["stage", "status", "pipeline", "שלב"],
-  value_cents: ["value", "amount", "deal", "$"],
   tags: ["tags", "labels", "תגיות"],
   linkedin_url: ["linkedin", "url", "social", "instagram"],
   next_step: ["next", "follow", "action"],
@@ -77,14 +73,6 @@ function parseStage(v: unknown): LeadStage {
   if (["new", "contacted", "qualified", "proposal", "won", "lost"].includes(s))
     return s as LeadStage;
   return "new";
-}
-
-function parseMoney(v: unknown): number {
-  const s = String(v ?? "").replace(/[^0-9.\-]/g, "");
-  const f = parseFloat(s);
-  if (!isFinite(f)) return 0;
-  // Heuristic: looks like whole dollars → convert to cents
-  return Math.round(f * 100);
 }
 
 function parseTags(v: unknown): string[] {
@@ -208,7 +196,6 @@ export function ImportLeadsModal() {
         location: invMap.location ? String(r[invMap.location] ?? "").trim() || undefined : undefined,
         source: invMap.source ? String(r[invMap.source] ?? "").trim() || undefined : "Import",
         stage: invMap.stage ? parseStage(r[invMap.stage]) : "new",
-        value_cents: invMap.value_cents ? parseMoney(r[invMap.value_cents]) : 0,
         tags: invMap.tags ? parseTags(r[invMap.tags]) : [],
         linkedin_url: invMap.linkedin_url
           ? String(r[invMap.linkedin_url] ?? "").trim() || undefined
@@ -238,54 +225,48 @@ export function ImportLeadsModal() {
   }
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className="fixed inset-0 z-[95] flex items-center justify-center overflow-y-auto px-4 py-[4vh]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          onClick={() => setOpen(false)}
-        >
-          <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px]" />
-          <motion.div
-            role="dialog"
-            aria-labelledby="import-leads-title"
-            initial={{ opacity: 0, y: -12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.98 }}
-            transition={SPRING.panel}
-            className="relative z-10 flex max-h-[92vh] w-full max-w-[720px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-app shadow-4"
-            onClick={(e) => e.stopPropagation()}
+    <Modal
+      open={open}
+      onClose={() => setOpen(false)}
+      title="Import leads"
+      subtitle={fileName || "CSV, XLSX, XLS or ODS — we'll auto-map columns."}
+      icon={<Icon icon={FileSpreadsheet} size={16} />}
+      width="lg"
+      footer={
+        <>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <a
+            href="data:text/csv;charset=utf-8,name,company,phone,email,stage,tags%0AMaya,Ferngrove Studio,+972 50 555 1234,maya@ferngrove.co,new,%22consulting;q2%22"
+            download="atlas-leads-template.csv"
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg-1"
           >
-            <div className="flex flex-none items-center gap-2.5 border-b border-border-subtle px-5 py-3.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-accent text-fg-on-accent">
-                <Icon icon={FileSpreadsheet} size={14} />
+            <Icon icon={Download} size={11} /> Template
+          </a>
+          <div className="ms-auto flex items-center gap-2">
+            {progress && (
+              <span className="text-[11.5px] text-fg-3">
+                {progress.done}/{progress.total}
               </span>
-              <h2
-                id="import-leads-title"
-                className="font-display text-[20px] font-semibold tracking-[-0.015em] text-fg-1"
-              >
-                Import leads
-              </h2>
-              {fileName && (
-                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-fg-3">
-                  {fileName}
-                </span>
-              )}
-              <IconButton
-                className="ms-auto"
-                size="sm"
-                title="Close"
-                onClick={() => setOpen(false)}
-              >
-                <Icon icon={X} size={14} />
-              </IconButton>
-            </div>
-
-            <div className="atlas-board-scroll flex-1 space-y-4 overflow-y-auto px-5 py-4">
-              {!headers.length && (
+            )}
+            <Button
+              variant="primary"
+              onClick={runImport}
+              disabled={!prepared.length || bulk.isPending}
+            >
+              {bulk.isPending
+                ? "Importing…"
+                : prepared.length
+                  ? `Import ${prepared.length} ${prepared.length === 1 ? "lead" : "leads"}`
+                  : "Import"}
+            </Button>
+          </div>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        {!headers.length && (
                 <>
                   <button
                     type="button"
@@ -396,46 +377,12 @@ export function ImportLeadsModal() {
                 </>
               )}
 
-              {error && (
-                <div className="rounded-lg border border-[var(--persimmon-500)]/30 bg-[var(--persimmon-100)] px-3 py-2 text-[12.5px] text-[var(--persimmon-500)]">
-                  {error}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-none items-center gap-2 border-t border-border-subtle bg-surface-1/60 px-5 py-3">
-              <Button variant="ghost" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <a
-                href="data:text/csv;charset=utf-8,name,company,phone,email,stage,tags%0AMaya,Ferngrove Studio,+972 50 555 1234,maya@ferngrove.co,new,%22consulting;q2%22"
-                download="atlas-leads-template.csv"
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium text-fg-3 transition-colors hover:bg-surface-2 hover:text-fg-1"
-              >
-                <Icon icon={Download} size={11} /> Template
-              </a>
-              <div className="ms-auto flex items-center gap-2">
-                {progress && (
-                  <span className="text-[11.5px] text-fg-3">
-                    {progress.done}/{progress.total}
-                  </span>
-                )}
-                <Button
-                  variant="primary"
-                  onClick={runImport}
-                  disabled={!prepared.length || bulk.isPending}
-                >
-                  {bulk.isPending
-                    ? "Importing…"
-                    : prepared.length
-                      ? `Import ${prepared.length} ${prepared.length === 1 ? "lead" : "leads"}`
-                      : "Import"}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        {error && (
+          <div className="rounded-[10px] border border-[var(--persimmon-500)]/30 bg-[var(--persimmon-100)] px-3 py-2 text-[12.5px] text-[var(--persimmon-500)]">
+            {error}
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }

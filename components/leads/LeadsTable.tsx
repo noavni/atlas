@@ -6,7 +6,7 @@ import { Icon } from "@/components/primitives/Icon";
 import { IconButton } from "@/components/primitives/IconButton";
 import { LeadAvatar } from "./LeadAvatar";
 import { StagePill } from "./StagePill";
-import { formatFullMoney, relativeTime } from "@/lib/leads";
+import { relativeTime } from "@/lib/leads";
 import type { Lead } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -21,12 +21,11 @@ export function LeadsTable({ leads, onSelect }: Props) {
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <Th width="28%">Lead</Th>
-            <Th width="14%">Stage</Th>
-            <Th width="14%">Value</Th>
-            <Th width="16%">Last touch</Th>
-            <Th width="13%">Next step</Th>
-            <Th width="15%">Tags</Th>
+            <Th width="30%">Lead</Th>
+            <Th width="16%">Stage</Th>
+            <Th width="18%">Last touch</Th>
+            <Th width="20%">Next step</Th>
+            <Th width="16%">Tags</Th>
           </tr>
         </thead>
         <tbody>
@@ -51,9 +50,6 @@ export function LeadsTable({ leads, onSelect }: Props) {
               </td>
               <td className="py-3.5">
                 <StagePill stage={lead.stage} />
-              </td>
-              <td className="py-3.5 font-mono text-[12.5px] font-medium tabular-nums text-fg-1">
-                {formatFullMoney(lead.value_cents || 0)}
               </td>
               <td className="py-3.5 text-[12.5px] text-fg-2">
                 {relativeTime(lead.last_touched_at)}

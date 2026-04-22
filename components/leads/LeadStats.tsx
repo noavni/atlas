@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { formatMoney } from "@/lib/leads";
 import type { Lead } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -33,17 +32,14 @@ function StatCard({ label, value, caption, captionTone = "muted" }: StatCardProp
 export function LeadStats({ leads }: { leads: Lead[] }) {
   const stats = useMemo(() => {
     const active = leads.filter((l) => l.stage !== "won" && l.stage !== "lost");
-    const pipelineCents = active.reduce((sum, l) => sum + (l.value_cents || 0), 0);
     const weekAgo = Date.now() - 7 * 86400 * 1000;
     const newThisWeek = active.filter(
       (l) => new Date(l.created_at).getTime() >= weekAgo,
     ).length;
-    const valueThisWeek = active
-      .filter((l) => new Date(l.created_at).getTime() >= weekAgo)
-      .reduce((sum, l) => sum + (l.value_cents || 0), 0);
+    const qualified = leads.filter((l) => l.stage === "qualified" || l.stage === "proposal").length;
     const needFollowUp = active.filter((l) => {
       if (!l.last_touched_at) return true;
-      return (Date.now() - new Date(l.last_touched_at).getTime()) > 48 * 3600 * 1000;
+      return Date.now() - new Date(l.last_touched_at).getTime() > 48 * 3600 * 1000;
     }).length;
     const overdue = needFollowUp > 0 ? Math.max(1, Math.floor(needFollowUp / 2)) : 0;
     const closed = leads.filter((l) => l.stage === "won" || l.stage === "lost").length;
@@ -52,8 +48,7 @@ export function LeadStats({ leads }: { leads: Lead[] }) {
     return {
       active: active.length,
       newThisWeek,
-      pipelineCents,
-      valueThisWeek,
+      qualified,
       needFollowUp,
       overdue,
       rate,
@@ -69,9 +64,9 @@ export function LeadStats({ leads }: { leads: Lead[] }) {
         captionTone="sage"
       />
       <StatCard
-        label="Pipeline value"
-        value={formatMoney(stats.pipelineCents)}
-        caption={stats.valueThisWeek ? `+${formatMoney(stats.valueThisWeek)} this week` : undefined}
+        label="Qualified"
+        value={String(stats.qualified)}
+        caption="ready for outreach"
         captionTone="sage"
       />
       <StatCard
