@@ -1,0 +1,9 @@
+.env
+.venv/
+models/
+whisper/
+scratch/
+service.log
+service.err.log
+*.log
+*.zip

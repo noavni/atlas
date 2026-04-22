@@ -1,0 +1,29 @@
+# Drop this into your Caddy install (e.g. C:\caddy\Caddyfile) if you prefer
+# Caddy over Cloudflare Tunnel. Caddy will auto-provision TLS via Let's Encrypt.
+#
+# Replace `atlas-stt.yourdomain.com` with a real subdomain pointing to this VPS.
+
+atlas-stt.yourdomain.com {
+  encode zstd gzip
+
+  @health path /health
+  handle @health {
+    reverse_proxy 127.0.0.1:8080
+  }
+
+  # Only /transcribe and /health are exposed. Anything else 404s at the edge.
+  @allow path /transcribe /health
+  handle @allow {
+    reverse_proxy 127.0.0.1:8080 {
+      header_up Host {host}
+      # Pass-through the worker secret header sent by Atlas.
+      transport http {
+        read_timeout 10m
+        write_timeout 10m
+      }
+    }
+  }
+  handle {
+    respond 404
+  }
+}
