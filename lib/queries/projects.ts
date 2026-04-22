@@ -11,6 +11,9 @@ export function useProjects(workspaceId: string | undefined) {
     queryKey: ["projects", workspaceId],
     queryFn: () => apiFetch<Project[]>(`/v1/workspaces/${workspaceId}/projects`),
     enabled: !!workspaceId,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

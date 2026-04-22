@@ -138,7 +138,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
       </div>
       <div className="font-ui text-[13.5px] font-medium leading-[1.35] text-fg-1">{card.title}</div>
       {card.description && (
-        <div className="mt-1 line-clamp-2 font-ui text-[12.5px] leading-[1.45] text-fg-3">
+        <div className="mt-1 line-clamp-3 whitespace-pre-line break-words font-ui text-[12.5px] leading-[1.45] text-fg-3">
           {card.description}
         </div>
       )}

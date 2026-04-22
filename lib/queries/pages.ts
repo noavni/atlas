@@ -31,6 +31,9 @@ export function usePages(workspaceId: string | undefined) {
     queryKey: ["pages", workspaceId],
     queryFn: () => apiFetch<PageSummary[]>(`/v1/workspaces/${workspaceId}/pages`),
     enabled: !!workspaceId,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -39,6 +42,9 @@ export function usePage(pageId: string | undefined) {
     queryKey: ["page", pageId],
     queryFn: () => apiFetch<PageDoc>(`/v1/pages/${pageId}`),
     enabled: !!pageId,
+    staleTime: 2 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

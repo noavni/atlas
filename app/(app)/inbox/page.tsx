@@ -121,22 +121,22 @@ export default function InboxPage() {
           <button
             type="button"
             onClick={() => setQuickCaptureOpen(true)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-3.5 font-ui text-[12.5px] font-medium text-fg-on-accent shadow-1 transition-opacity hover:opacity-90"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full bg-accent px-3 font-ui text-[12px] font-medium text-fg-on-accent shadow-1 transition-opacity hover:opacity-90"
           >
-            <Icon icon={Sparkles} size={13} />
+            <Icon icon={Sparkles} size={12} />
             <span>Capture</span>
             <Kbd className="bg-white/20 text-fg-on-accent">⌘N</Kbd>
           </button>
         </div>
 
-        <div className="mb-6 inline-flex h-8 items-center gap-0.5 rounded-[9px] border border-border-subtle bg-surface-2 p-0.5">
+        <div className="mb-5 inline-flex h-7 items-center gap-0.5 rounded-[8px] border border-border-subtle bg-surface-2 p-0.5">
           {FILTERS.map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={() => setFilter(f.id)}
               className={cn(
-                "rounded-[7px] px-3 py-1 text-[12px] font-medium transition-colors",
+                "rounded-[6px] px-2.5 py-[3px] text-[11.5px] font-medium transition-colors",
                 filter === f.id
                   ? "bg-surface-raised text-fg-1 shadow-1"
                   : "text-fg-2 hover:text-fg-1",

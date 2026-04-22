@@ -5,11 +5,23 @@ import { v4 as uuid } from "uuid";
 import { apiFetch } from "@/lib/api";
 import type { Board, BoardColumn, Card } from "@/lib/types";
 
+// Long staleTime on board entities: realtime subscriptions push
+// updates into the cache, so re-navigating back to a project does NOT
+// need a fresh network round-trip. This is what makes clicking around
+// the app feel instant — we serve cached data immediately and only
+// revalidate in the background.
+const BOARD_QUERY_OPTS = {
+  staleTime: 5 * 60_000,
+  gcTime: 30 * 60_000,
+  refetchOnWindowFocus: false,
+} as const;
+
 export function useBoards(projectId: string | undefined) {
   return useQuery({
     queryKey: ["boards", projectId],
     queryFn: () => apiFetch<Board[]>(`/v1/projects/${projectId}/boards`),
     enabled: !!projectId,
+    ...BOARD_QUERY_OPTS,
   });
 }
 
@@ -18,6 +30,7 @@ export function useColumns(boardId: string | undefined) {
     queryKey: ["columns", boardId],
     queryFn: () => apiFetch<BoardColumn[]>(`/v1/boards/${boardId}/columns`),
     enabled: !!boardId,
+    ...BOARD_QUERY_OPTS,
   });
 }
 
@@ -26,6 +39,7 @@ export function useCards(boardId: string | undefined) {
     queryKey: ["cards", boardId],
     queryFn: () => apiFetch<Card[]>(`/v1/boards/${boardId}/cards`),
     enabled: !!boardId,
+    ...BOARD_QUERY_OPTS,
   });
 }
 

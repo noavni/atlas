@@ -146,7 +146,15 @@ export function Board({ projectId }: BoardProps) {
     await createColumn.mutateAsync({ boardId, name });
   }
 
-  if (boards.isLoading) {
+  // Wait for every query that gates the first paint before deciding
+  // whether to show the "Set up this board" CTA. Without this, a project
+  // with columns briefly flashes the bootstrap card on first open while
+  // columns are still in flight.
+  if (
+    boards.isLoading ||
+    boards.isFetching ||
+    (firstBoardId && (columns.isLoading || cards.isLoading))
+  ) {
     return <BoardSkeleton />;
   }
   if (!firstBoardId || (columns.data?.length ?? 0) === 0) {
